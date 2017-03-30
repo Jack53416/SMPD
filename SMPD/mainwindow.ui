@@ -15,6 +15,9 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QTabWidget" name="tabWidget">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -35,7 +38,7 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>75</width>
+        <width>101</width>
         <height>31</height>
        </rect>
       </property>
@@ -230,6 +233,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="CpushButtonTrain">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>380</x>
@@ -258,24 +264,33 @@
      <widget class="QComboBox" name="CcomboBoxClassifiers">
       <property name="geometry">
        <rect>
-        <x>210</x>
+        <x>220</x>
         <y>10</y>
         <width>69</width>
         <height>31</height>
        </rect>
       </property>
+      <property name="editable">
+       <bool>false</bool>
+      </property>
      </widget>
      <widget class="QPlainTextEdit" name="CplainTextEditTrainingPart">
       <property name="geometry">
        <rect>
-        <x>380</x>
-        <y>60</y>
+        <x>390</x>
+        <y>70</y>
         <width>71</width>
         <height>31</height>
        </rect>
       </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
      </widget>
      <widget class="QPushButton" name="CpushButtonExecute">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>540</x>

@@ -1,20 +1,22 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
-#include "object.h"
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    classifier(NULL)
 {
     ui->setupUi(this);
     FSupdateButtonState();
+    ui->CplainTextEditTrainingPart->appendPlainText("20%");
+    ui->CcomboBoxClassifiers->addItem("NN");
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    if(classifier)
+        delete classifier;
 }
 
 void MainWindow::updateDatabaseInfo(QTextBrowser* textBrowser)
@@ -130,12 +132,22 @@ void MainWindow::on_CpushButtonOpenFile_clicked()
         tr("Open TextFile"), "", tr("Texts Files (*.txt)"));
 
     if ( !database.load(fileName.toStdString()) )
+    {
+        ui->CpushButtonTrain->setEnabled(false);
+        ui->CpushButtonExecute->setEnabled(false);
         QMessageBox::warning(this, "Warning", "File corrupted !!!");
+    }
     else
+    {
         QMessageBox::information(this, fileName, "File loaded !!!");
+        ui->CpushButtonTrain->setEnabled(true);
+    }
 
-    FSupdateButtonState();
     updateDatabaseInfo(ui->CtextBrowser);
+    if(classifier)
+        delete classifier;
+    classifier = new NearestNeighbour(database);
+
 }
 
 void MainWindow::on_CpushButtonSaveFile_clicked()
@@ -145,7 +157,13 @@ void MainWindow::on_CpushButtonSaveFile_clicked()
 
 void MainWindow::on_CpushButtonTrain_clicked()
 {
-
+    if(classifier)
+    {
+        classifier->train();
+        ui->CpushButtonExecute->setEnabled(true);
+        ui->CtextBrowser->append("Training Successful!\nTrain Size:" + QString::number(classifier->getTrainSize()));
+        ui->CtextBrowser->append("Test Size:" + QString::number(classifier->getTestSize()));
+    }
 }
 
 void MainWindow::on_CpushButtonExecute_clicked()

@@ -1,19 +1,29 @@
+#ifndef CLASSIFIER_H
+#define CLASSIFIER_H
+
 #include "database.h"
 
-class Classifier
-{
-	
-	public:
-		Classifier( const database &trainSet, const database &testSet ) : trainingSet(trainSet), testSet(testSet){}
-		
-		virtual void train() = 0;
-		
-		virtual float test() = 0; 
-		
-	private:
-	
-		database trainingSet;
-		database testSet;
-		
-	
-}
+class Classifier{
+
+public:
+    Classifier(Database &data): originalSet(data){}
+    unsigned int getTestSize(){return (unsigned int) testSeq.size();}
+    unsigned int getTrainSize(){return (unsigned int) trainingSeq.size();}
+
+    virtual void train()=0;
+    virtual void execute()=0;
+
+protected:
+    unsigned int trainingSize;
+
+    std::vector<unsigned int> trainIndexes;
+    std::vector<Object> trainingSeq;
+    std::vector<Object> testSeq;
+
+    Database trainingSet;
+    Database testSet;
+    Database& originalSet;
+
+};
+
+#endif // CLASSIFIER_H

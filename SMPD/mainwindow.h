@@ -14,6 +14,9 @@
 #include <QTextBrowser>
 
 #include"database.h"
+#include "object.h"
+#include "nearestneighbour.h"
+#include "classifier.h"
 
 namespace Ui {
 class MainWindow;
@@ -35,6 +38,8 @@ private:
     void FSupdateButtonState(void);
     void FSsetButtonState(bool state);
 
+    void divideDatabase();
+    bool checkIfIndexOriginal(unsigned int index);
 
 
 private slots:
@@ -60,6 +65,8 @@ private:
 
 private:
      Database database;
+     Classifier* classifier;
+
 };
 
 #endif // MAINWINDOW_H
