@@ -168,5 +168,21 @@ void MainWindow::on_CpushButtonTrain_clicked()
 
 void MainWindow::on_CpushButtonExecute_clicked()
 {
+    NearestNeighbour *ptr;
+    std::map<Object* , ClosestObject>::iterator it;
+    if(classifier)
+    {
+        ptr = (NearestNeighbour*) classifier;
+        classifier->execute();
+        it = ptr->log.begin();
+        while(it != ptr->log.end()) // dla wyswietlania pelnego loga
+        {
+            ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
+                                     + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
+                                     + " dist = " + QString::number(it->second.distance));
+            it++;
+        }
+        ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
+    }
 
 }
