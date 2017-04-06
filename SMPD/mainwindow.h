@@ -16,6 +16,7 @@
 #include"database.h"
 #include "object.h"
 #include "nearestneighbour.h"
+#include "knearestneighbours.h"
 #include "classifier.h"
 
 namespace Ui {
@@ -59,6 +60,8 @@ private slots:
     void on_CpushButtonTrain_clicked();
 
     void on_CpushButtonExecute_clicked();
+
+    void on_comboBoxTrainingPart_currentTextChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;

@@ -8,8 +8,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     FSupdateButtonState();
-    ui->CplainTextEditTrainingPart->appendPlainText("20%");
     ui->CcomboBoxClassifiers->addItem("NN");
+    ui->CcomboBoxClassifiers->addItem("kNN");
+    for(int i = 10; i<100; i+=10)
+    {
+        ui->comboBoxTrainingPart->addItem(QString::number(i));
+    }
 }
 
 MainWindow::~MainWindow()
@@ -163,26 +167,58 @@ void MainWindow::on_CpushButtonTrain_clicked()
         ui->CpushButtonExecute->setEnabled(true);
         ui->CtextBrowser->append("Training Successful!\nTrain Size:" + QString::number(classifier->getTrainSize()));
         ui->CtextBrowser->append("Test Size:" + QString::number(classifier->getTestSize()));
+        //ui->CtextBrowser->append(QString::number(ui->comboBoxTrainingPart->currentText().toInt()));
     }
 }
 
 void MainWindow::on_CpushButtonExecute_clicked()
 {
-    NearestNeighbour *ptr;
     std::map<Object* , ClosestObject>::iterator it;
+    int classifierChoice = ui->CcomboBoxClassifiers->currentIndex();
+    NearestNeighbour* ptr;
+    KNearestNeighbours* ptr2;
     if(classifier)
     {
-        ptr = (NearestNeighbour*) classifier;
-        classifier->execute();
-        it = ptr->log.begin();
-        while(it != ptr->log.end()) // dla wyswietlania pelnego loga
+        switch(classifierChoice)
         {
-            ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
-                                     + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
-                                     + " dist = " + QString::number(it->second.distance));
-            it++;
+            case 0: //nn
+                ptr = (NearestNeighbour*) classifier;
+                classifier->execute();
+                it = ptr->log.begin();
+                while(it != ptr->log.end()) // dla wyswietlania pelnego loga
+                {
+                    ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
+                                             + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
+                                             + " dist = " + QString::number(it->second.distance));
+                    it++;
+                }
+                ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
+                break;
+          /*  case 1: //knn
+                ptr2 = (KNearestNeighbours*) classifier;
+                classifier->execute();
+                it = ptr2->log.begin();
+                while(it != ptr2->log.end()) // dla wyswietlania pelnego loga
+                {
+                    ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
+                                             + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
+                                             + " dist = " + QString::number(it->second.distance));
+                    it++;
+                }
+                ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
+                break;
+                */
         }
-        ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
+
+
     }
 
+}
+
+void MainWindow::on_comboBoxTrainingPart_currentTextChanged(const QString &arg1)
+{
+    if(classifier)
+    {
+        classifier->setTrainSize(arg1.toInt());
+    }
 }

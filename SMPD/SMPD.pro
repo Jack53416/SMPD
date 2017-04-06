@@ -29,13 +29,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     database.cpp \
     object.cpp \
-    nearestneighbour.cpp
+    nearestneighbour.cpp \
+    knearestneighbours.cpp
 
 HEADERS  += mainwindow.h \
     database.h \
     object.h \
     matrixutil.hpp \
     nearestneighbour.h \
-    classifier.h
+    classifier.h \
+    knearestneighbours.h
 
 FORMS    += mainwindow.ui

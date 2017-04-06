@@ -7,8 +7,16 @@ class Classifier{
 
 public:
     Classifier(Database &data): originalSet(data){}
-    unsigned int getTestSize(){return (unsigned int) testSeq.size();}
-    unsigned int getTrainSize(){return (unsigned int) trainingSeq.size();}
+    unsigned int getTestSize(){
+        return (unsigned int) testSeq.size();
+    }
+    unsigned int getTrainSize(){
+        return (unsigned int) trainingSeq.size();
+    }
+    void setTrainSize(int number)
+    {
+        trainingSize=number*originalSet.getNoObjects()/100;
+    }
     double getFailRate(){return failureRate;}
 
     virtual void train()=0;

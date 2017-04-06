@@ -274,19 +274,6 @@
        <bool>false</bool>
       </property>
      </widget>
-     <widget class="QPlainTextEdit" name="CplainTextEditTrainingPart">
-      <property name="geometry">
-       <rect>
-        <x>390</x>
-        <y>70</y>
-        <width>71</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
      <widget class="QPushButton" name="CpushButtonExecute">
       <property name="enabled">
        <bool>false</bool>
@@ -326,6 +313,29 @@
        </rect>
       </property>
      </widget>
+     <widget class="QComboBox" name="comboBoxTrainingPart">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>70</y>
+        <width>104</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>70</y>
+        <width>81</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>%</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -335,7 +345,7 @@
      <x>0</x>
      <y>0</y>
      <width>991</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

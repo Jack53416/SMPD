@@ -5,7 +5,7 @@
 NearestNeighbour::NearestNeighbour(Database &data):
     Classifier(data)
 {
-    trainingSize=data.getNoObjects()*0.2;
+    trainingSize=data.getNoObjects()*0.8; //ustawianie wielkosci treningowego
     failureRate= 0.0;
 }
 
