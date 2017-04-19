@@ -12,7 +12,6 @@ class Database
 private:
     std::vector<Object> objects;
     std::map<std::string, int> classCounters;
-	std::vector<std::string> classNamesVector;
     std::vector<unsigned int> featuresIDs;
 
     unsigned int noClass;
@@ -24,7 +23,7 @@ public:
     Database() : noClass(0), noObjects(0), noFeatures(0)
     {
     }
-
+    std::vector<std::string> classNamesVector;
     bool addObject(const Object &object);
     void clear();
     bool load(const std::string &fileName);

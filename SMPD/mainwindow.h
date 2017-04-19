@@ -18,6 +18,7 @@
 #include "nearestneighbour.h"
 #include "knearestneighbours.h"
 #include "classifier.h"
+#include "nearestmean.h"
 
 namespace Ui {
 class MainWindow;

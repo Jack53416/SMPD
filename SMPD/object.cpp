@@ -1,5 +1,6 @@
 #include "object.h"
 
+
     std::string Object::getClassName() const
     {
         return className;
@@ -15,5 +16,8 @@
         return features;
     }
 
-
+    void Object::setClassName(std::string name)
+    {
+        className = name;
+    }
 

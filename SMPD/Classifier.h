@@ -3,6 +3,12 @@
 
 #include "database.h"
 
+typedef struct ClosestObject {
+    double distance;
+    Object* obj;
+} ClosestObject;
+
+
 class Classifier{
 
 public:
@@ -21,7 +27,7 @@ public:
 
     virtual void train()=0;
     virtual void execute()=0;
-
+    int k;
 protected:
     unsigned int trainingSize;
     double failureRate;

@@ -10,6 +10,12 @@ MainWindow::MainWindow(QWidget *parent) :
     FSupdateButtonState();
     ui->CcomboBoxClassifiers->addItem("NN");
     ui->CcomboBoxClassifiers->addItem("kNN");
+    ui->CcomboBoxClassifiers->addItem("NM");
+    ui->CcomboBoxK->addItem("3");
+    ui->CcomboBoxK->addItem("5");
+    ui->CcomboBoxK->addItem("7");
+    ui->CcomboBoxK->addItem("9");
+
     for(int i = 10; i<100; i+=10)
     {
         ui->comboBoxTrainingPart->addItem(QString::number(i));
@@ -150,7 +156,8 @@ void MainWindow::on_CpushButtonOpenFile_clicked()
     updateDatabaseInfo(ui->CtextBrowser);
     if(classifier)
         delete classifier;
-    classifier = new NearestNeighbour(database);
+   // classifier = new NearestNeighbour(database);
+
 
 }
 
@@ -161,8 +168,23 @@ void MainWindow::on_CpushButtonSaveFile_clicked()
 
 void MainWindow::on_CpushButtonTrain_clicked()
 {
+    int classifierChoice = ui->CcomboBoxClassifiers->currentIndex();
+    switch(classifierChoice)
+    {
+        case 0: //nn
+        classifier = new NearestNeighbour(database);
+        break;
+        case 1: //knn
+        classifier = new KNearestNeighbours(database);
+        break;
+        case 2: //nm
+        classifier = new NearestMean(database);
+        break;
+    }
+
     if(classifier)
     {
+        classifier->setTrainSize(ui->comboBoxTrainingPart->currentText().toInt());
         classifier->train();
         ui->CpushButtonExecute->setEnabled(true);
         ui->CtextBrowser->append("Training Successful!\nTrain Size:" + QString::number(classifier->getTrainSize()));
@@ -175,17 +197,20 @@ void MainWindow::on_CpushButtonExecute_clicked()
 {
     std::map<Object* , ClosestObject>::iterator it;
     int classifierChoice = ui->CcomboBoxClassifiers->currentIndex();
-    NearestNeighbour* ptr;
-    KNearestNeighbours* ptr2;
+
+    NearestNeighbour* ptrNN;
+    KNearestNeighbours* ptrKNN;
+    NearestMean* ptrNM;
     if(classifier)
     {
         switch(classifierChoice)
         {
             case 0: //nn
-                ptr = (NearestNeighbour*) classifier;
-                classifier->execute();
-                it = ptr->log.begin();
-                while(it != ptr->log.end()) // dla wyswietlania pelnego loga
+
+                ptrNN = (NearestNeighbour*) classifier;
+                ptrNN->execute();
+                it = ptrNN->log.begin();
+                while(it != ptrNN->log.end()) // dla wyswietlania pelnego loga
                 {
                     ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
                                              + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
@@ -194,11 +219,30 @@ void MainWindow::on_CpushButtonExecute_clicked()
                 }
                 ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
                 break;
-          /*  case 1: //knn
-                ptr2 = (KNearestNeighbours*) classifier;
-                classifier->execute();
-                it = ptr2->log.begin();
-                while(it != ptr2->log.end()) // dla wyswietlania pelnego loga
+
+             case 1: //knn
+
+                ptrKNN = (KNearestNeighbours*) classifier;
+                ui->CtextBrowser->append(QString::number(classifierChoice));
+                ptrKNN->k = ui->CcomboBoxK->currentText().toInt();
+                ptrKNN->execute(database);
+                it = ptrKNN->log.begin();
+                while(it != ptrKNN->log.end()) // dla wyswietlania pelnego loga
+                {
+                   ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
+                                             + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
+                                             + " dist = " + QString::number(it->second.distance));
+                    it++;
+                }
+                ui->CtextBrowser->append("knnfailure rate =" + QString::number(classifier->getFailRate()));
+                break;
+
+            case 2: //nm
+
+                ptrNM = (NearestMean*) classifier;
+                ptrNM->execute();
+                it = ptrNM->log.begin();
+                while(it != ptrNM->log.end()) // dla wyswietlania pelnego loga
                 {
                     ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
                                              + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
@@ -207,11 +251,10 @@ void MainWindow::on_CpushButtonExecute_clicked()
                 }
                 ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
                 break;
-                */
+
         }
-
-
     }
+    classifier = NULL;
 
 }
 

@@ -1,15 +1,14 @@
-#include "nearestneighbour.h"
+#include "nearestmean.h"
 #include <functional>
 
-
-NearestNeighbour::NearestNeighbour(Database &data):
+NearestMean::NearestMean(Database &data):
     Classifier(data)
 {
-    trainingSize=data.getNoObjects()*0.8; //ustawianie wielkosci treningowego
+    trainingSize=data.getNoObjects()*0.1; //ustawianie wielkosci treningowego
     failureRate= 0.0;
 }
 
-bool NearestNeighbour::checkIfIndexOriginal(unsigned int index)
+bool NearestMean::checkIfIndexOriginal(unsigned int index)
 {
     if(trainIndexes.size() == 0)
         return true;
@@ -22,7 +21,7 @@ bool NearestNeighbour::checkIfIndexOriginal(unsigned int index)
 
 }
 
-void NearestNeighbour::divideDatabase( Database &data)
+void NearestMean::divideDatabase( Database &data)
 {
     unsigned int rN;
     qsrand(QTime::currentTime().msec());
@@ -50,6 +49,8 @@ void NearestNeighbour::divideDatabase( Database &data)
         deleteIndex(trainIndexes[i], testSeq);
     }
 
+    calculateMean(data);
+
     //Debug
    /* for(unsigned int i =0; i<testSeq.size(); i++)
     {
@@ -60,19 +61,72 @@ void NearestNeighbour::divideDatabase( Database &data)
     qDebug()<<"TrainingSeq:"<<trainingSeq.size() << "TestSeq:" << testSeq.size()<<"BaseSize" << data.getNoObjects();*/
 }
 
-void NearestNeighbour::deleteIndex(unsigned int index, std::vector<Object> & vec)
+void NearestMean::deleteIndex(unsigned int index, std::vector<Object> & vec)
 {
     vec.at(index) = vec.back();
     vec.pop_back();
 }
 
-void NearestNeighbour::train(){
+void NearestMean::calculateMean(Database &data){
+
+    float sumFeatures[data.getNoClass()][data.getNoFeatures()];
+    int numberOfObjectsFromClass[data.getNoClass()];
+    int classId = 0;
+    std::vector<std::vector<float>> dataVector(data.getNoClass(), std::vector<float>(data.getNoFeatures()));
+
+    for(int j = 0; j<data.getNoClass();j++) //inicializacja tablic
+    {
+
+        for(int i = 0; i<data.getNoFeatures();i++)
+        {
+           sumFeatures[j][i] = 0;
+        }
+          numberOfObjectsFromClass[j]= 0;
+    }
+
+    for(int i = 0; i<testSeq.size();i++)//sumujemy featury w danej klasie
+    {
+        for(int j = 0; j<data.getClassNames().size();j++)//sprawdzenie w ktorej jest klasie
+        {
+            if(!data.getClassNames().at(j).compare(testSeq.at(i).getClassName())){
+                classId = j;
+                break;
+            }
+        }
+        for(int m = 0; m<data.getNoFeatures();m++) //sumujemy featury w danej klasie
+        {
+            sumFeatures[classId][m]+= testSeq.at(i).getFeatures().at(m);
+
+
+        }
+        numberOfObjectsFromClass[classId]++;
+
+        classId = -1;
+    }
+
+    for(int j = 0; j<data.getNoClass();j++)//dzielimy przez liczbe obiektow z klasy
+     {
+         for(int i = 0; i<data.getNoFeatures();i++)
+         {
+            sumFeatures[j][i] = sumFeatures[j][i]/ numberOfObjectsFromClass[j];
+         }
+    }
+
+    testSeq.clear(); //czyscimy zbior
+    for(int i = 0; i< data.getNoClass();i++)//dodajemy srednie wartosci z klas
+     {
+        dataVector.at(i).assign(sumFeatures[i], sumFeatures[i] + data.getNoFeatures());
+        testSeq.push_back(Object(data.getClassNames().at(i),dataVector.at(i)));
+     }
+}
+
+void NearestMean::train(){
     if(originalSet.getNoObjects() > 0)
         divideDatabase(originalSet);
 
 }
 
-void NearestNeighbour::execute(){
+void NearestMean::execute(){
     ClosestObject obj;
     for(unsigned int i = 0; i<trainingSeq.size(); i++ )
     {
@@ -84,7 +138,7 @@ void NearestNeighbour::execute(){
     failureRate /= trainingSeq.size();
 }
 
-double NearestNeighbour::calculateDistance(Object& startVec, Object& endVec) // liczy pierwiastek z kwadratow roznic miedzy wektorami
+double NearestMean::calculateDistance(Object& startVec, Object& endVec) // liczy pierwiastek z kwadratow roznic miedzy wektorami
 {
     double result = 0.0;
     double sum=0.0;
@@ -101,7 +155,7 @@ double NearestNeighbour::calculateDistance(Object& startVec, Object& endVec) // 
     return result;
 }
 
-ClosestObject NearestNeighbour::classifyObject(Object obj) //znajduje obiekt z najmniejsza odlegloscia i zwaraca jego ptr z wartoscia
+ClosestObject NearestMean::classifyObject(Object obj) //znajduje obiekt z najmniejsza odlegloscia i zwaraca jego ptr z wartoscia
 {
     double tmpDist;
     ClosestObject result;
