@@ -2,7 +2,7 @@
 #define CLASSIFIER_H
 
 #include "database.h"
-
+#include <functional>
 typedef struct ClosestObject {
     double distance;
     Object* obj;

@@ -92,10 +92,10 @@ ClosestObject KNearestNeighbours::classifyObject(Object obj, Database &data) //z
 {
     double tmpDist;
     ClosestObject result;
-    ClosestObject results[k];
+    ClosestObject* results = new ClosestObject[k]; ///delete!
     result.distance=calculateDistance(obj,testSeq.at(0));
     result.obj=&testSeq.at(0);
-    int classes[data.getNoClass()];
+    int* classes = new int[data.getNoClass()]; /// delete!
     std::string className;
     int maxIndex = 0;
     int maxValue = 0;

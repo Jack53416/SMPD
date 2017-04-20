@@ -69,22 +69,28 @@ void NearestMean::deleteIndex(unsigned int index, std::vector<Object> & vec)
 
 void NearestMean::calculateMean(Database &data){
 
-    float sumFeatures[data.getNoClass()][data.getNoFeatures()];
-    int numberOfObjectsFromClass[data.getNoClass()];
+    float** sumFeatures = NULL;
+    int* numberOfObjectsFromClass = new int[data.getNoClass()];
     int classId = 0;
     std::vector<std::vector<float>> dataVector(data.getNoClass(), std::vector<float>(data.getNoFeatures()));
 
-    for(int j = 0; j<data.getNoClass();j++) //inicializacja tablic
+    sumFeatures = new float*[data.getNoClass()];
+    for(unsigned int i = 0; i<data.getNoClass();i++)
+    {
+        sumFeatures[i] = new float[data.getNoFeatures()];
+    }
+
+    for(unsigned int j = 0; j<data.getNoClass();j++) //inicializacja tablic
     {
 
-        for(int i = 0; i<data.getNoFeatures();i++)
+        for(unsigned int i = 0; i<data.getNoFeatures();i++)
         {
            sumFeatures[j][i] = 0;
         }
           numberOfObjectsFromClass[j]= 0;
     }
 
-    for(int i = 0; i<testSeq.size();i++)//sumujemy featury w danej klasie
+    for(unsigned int i = 0; i<testSeq.size();i++)//sumujemy featury w danej klasie
     {
         for(int j = 0; j<data.getClassNames().size();j++)//sprawdzenie w ktorej jest klasie
         {
@@ -93,7 +99,7 @@ void NearestMean::calculateMean(Database &data){
                 break;
             }
         }
-        for(int m = 0; m<data.getNoFeatures();m++) //sumujemy featury w danej klasie
+        for(unsigned int m = 0; m<data.getNoFeatures();m++) //sumujemy featury w danej klasie
         {
             sumFeatures[classId][m]+= testSeq.at(i).getFeatures().at(m);
 
@@ -104,20 +110,27 @@ void NearestMean::calculateMean(Database &data){
         classId = -1;
     }
 
-    for(int j = 0; j<data.getNoClass();j++)//dzielimy przez liczbe obiektow z klasy
+    for(unsigned int j = 0; j<data.getNoClass();j++)//dzielimy przez liczbe obiektow z klasy
      {
-         for(int i = 0; i<data.getNoFeatures();i++)
+         for(unsigned int i = 0; i<data.getNoFeatures();i++)
          {
             sumFeatures[j][i] = sumFeatures[j][i]/ numberOfObjectsFromClass[j];
          }
     }
 
     testSeq.clear(); //czyscimy zbior
-    for(int i = 0; i< data.getNoClass();i++)//dodajemy srednie wartosci z klas
+    for(unsigned int i = 0; i< data.getNoClass();i++)//dodajemy srednie wartosci z klas
      {
         dataVector.at(i).assign(sumFeatures[i], sumFeatures[i] + data.getNoFeatures());
         testSeq.push_back(Object(data.getClassNames().at(i),dataVector.at(i)));
      }
+
+    for(unsigned int i = 0; i < data.getNoClass() ; i++)
+    {
+        delete sumFeatures[i];
+    }
+    delete sumFeatures;
+    delete numberOfObjectsFromClass;
 }
 
 void NearestMean::train(){
@@ -127,7 +140,7 @@ void NearestMean::train(){
 }
 
 void NearestMean::execute(){
-    ClosestObject obj;
+    ClosestObject obj; //
     for(unsigned int i = 0; i<trainingSeq.size(); i++ )
     {
         obj=classifyObject(this->trainingSeq.at(i));
