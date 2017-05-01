@@ -13,15 +13,12 @@ public:
     void train();
     void execute();
     void execute(Database &data);
-    double calculateDistance(Object& startVec, Object& endVec);
     ClosestObject classifyObject(Object obj, Database &data);
     std::map<Object*, ClosestObject> log; //zeby wyswietlic pelne dane w GUI
     int k;
 
 private:
-    void divideDatabase(Database &data);
-    bool checkIfIndexOriginal(unsigned int index);
-    static void deleteIndex(unsigned int index, std::vector<Object> & vec);
+
 };
 
 

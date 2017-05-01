@@ -11,15 +11,11 @@ public:
     NearestNeighbour(Database &data);
     void train();
     void execute();
-    double calculateDistance(Object& startVec, Object& endVec);
-    ClosestObject classifyObject(Object obj);
+
     std::map<Object*, ClosestObject> log; //zeby wyswietlic pelne dane w GUI
 
 private:
-    void divideDatabase(Database &data);
-    bool checkIfIndexOriginal(unsigned int index);
-
-    static void deleteIndex(unsigned int index, std::vector<Object> & vec);
+    ClosestObject classifyObject(Object obj);
 };
 
 

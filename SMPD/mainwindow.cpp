@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->CcomboBoxClassifiers->addItem("NN");
     ui->CcomboBoxClassifiers->addItem("kNN");
     ui->CcomboBoxClassifiers->addItem("NM");
+    ui->CcomboBoxClassifiers->addItem("kNM");
     ui->CcomboBoxK->addItem("3");
     ui->CcomboBoxK->addItem("5");
     ui->CcomboBoxK->addItem("7");
@@ -180,6 +181,10 @@ void MainWindow::on_CpushButtonTrain_clicked()
         case 2: //nm
         classifier = new NearestMean(database);
         break;
+        case 3: //knM
+        classifier = new KNearestMean(database, ui->CcomboBoxK->currentText().toInt());
+        break;
+
     }
 
     if(classifier)
@@ -201,6 +206,7 @@ void MainWindow::on_CpushButtonExecute_clicked()
     NearestNeighbour* ptrNN;
     KNearestNeighbours* ptrKNN;
     NearestMean* ptrNM;
+    KNearestMean* ptrKNM;
     if(classifier)
     {
         switch(classifierChoice)
@@ -251,10 +257,20 @@ void MainWindow::on_CpushButtonExecute_clicked()
                 }
                 ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
                 break;
+        case 3: //knM
+            ptrKNM = (KNearestMean*) classifier;
+            classifier->execute();
+            for(int i = 0; i <ptrKNM->log.size(); i++ )
+            {
+                ui->CtextBrowser->append(QString::fromStdString(ptrKNM->log.at(i)));
+            }
+            break;
 
         }
     }
+    delete classifier;
     classifier = NULL;
+    ui->CpushButtonExecute->setEnabled(false);
 
 }
 

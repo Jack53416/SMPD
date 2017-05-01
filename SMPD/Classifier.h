@@ -3,6 +3,7 @@
 
 #include "database.h"
 #include <functional>
+#include <QtCore>
 typedef struct ClosestObject {
     double distance;
     Object* obj;
@@ -25,10 +26,17 @@ public:
     }
     double getFailRate(){return failureRate;}
 
+    double calculateDistance(Object& startVec, Object& endVec);
+
     virtual void train()=0;
     virtual void execute()=0;
     int k;
 protected:
+    void divideDatabase(Database &data);
+    bool checkIfIndexOriginal(unsigned int index);
+    static void deleteIndex(unsigned int index, std::vector<Object> & vec);
+
+    //variables
     unsigned int trainingSize;
     double failureRate;
 

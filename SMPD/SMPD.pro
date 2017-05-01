@@ -31,7 +31,9 @@ SOURCES += main.cpp\
     object.cpp \
     nearestneighbour.cpp \
     knearestneighbours.cpp \
-    nearestmean.cpp
+    nearestmean.cpp \
+    KNearestMean.cpp \
+    classifier.cpp
 
 HEADERS  += mainwindow.h \
     database.h \
@@ -40,6 +42,7 @@ HEADERS  += mainwindow.h \
     nearestneighbour.h \
     classifier.h \
     knearestneighbours.h \
-    nearestmean.h
+    nearestmean.h \
+    KNearestMean.h
 
 FORMS    += mainwindow.ui
