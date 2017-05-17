@@ -4,6 +4,32 @@
 
 namespace bnu = boost::numeric::ublas;
 
+std::vector<std::vector<int>> comb(int N, int K)
+{
+    std::string bitmask(K, 1); // K leading 1's
+    bitmask.resize(N, 0); // N-K trailing 0's
+    std::vector<std::vector<int>> vect;
+    int counter = 0;
+
+    // print integers and permute bitmask
+    do {
+        vect.push_back(std::vector<int>());
+        for (int i = 0; i < N; ++i) // [0..N-1] integers
+        {
+            if (bitmask[i])
+            {
+               // std::cout << " " << i;
+                vect.at(counter).push_back(i);
+            }
+
+        }
+        //std::cout << std::endl;
+        counter++;
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+    return vect;
+}
+
+
 int determinant_sign(const bnu::permutation_matrix<std::size_t>& pm)
 {
     int pm_sign=1;
@@ -26,8 +52,6 @@ double determinant( bnu::matrix<double>& m ) {
     }
     return det;
 }
-
-
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -109,7 +133,6 @@ void MainWindow::on_FSpushButtonCompute_clicked()
 {
     int dimension = ui->FScomboBox->currentText().toInt();
 
-
     bnu::matrix<double> m(3, 3);
         for (unsigned i = 0; i < m.size1() ; ++i) {
             for (unsigned j = 0; j < m.size2() ; ++j) {
@@ -117,7 +140,8 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                 m(i,j) = m(i,j)*m(i,j);       // with some numbers
             }
         }
-        std::cout<<m;
+        double k = determinant(m);
+        std::cout<<k<<std::endl;
 
 
     if( ui->FSradioButtonFisher ->isChecked())
@@ -154,11 +178,148 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                     max_ind = i;
                 }
 
+
               }
 
             ui->FStextBrowserDatabaseInfo->append("max_ind: "  +  QString::number(max_ind) + " " + QString::number(FLD));
-          }
-     }
+          }else{
+
+                    int max_ind = 0;
+                    double FLD = 0;
+                    double tmp;
+                    std::vector<int> bestFeatures(dimension);
+
+
+                    std::vector<double> classAAvg;
+                    std::vector<double> classBAvg;
+
+                    std::vector<Object> classAMembers;
+                    std::vector<Object> classBMembers;
+                    std::vector<double> classAStd;
+                    std::vector<double> classBStd;
+
+
+                    for (uint i = 0; i < database.getNoFeatures(); ++i)
+                    {
+                        std::map<std::string, float> classAverages;
+                        std::map<std::string, float> classStds;
+
+                        for (auto const &ob : database.getObjects())
+                        {
+                            classAverages[ob.getClassName()] += ob.getFeatures()[i];
+                            classStds[ob.getClassName()] += ob.getFeatures()[i] * ob.getFeatures()[i];
+
+                        }
+
+                        std::for_each(database.getClassCounters().begin(), database.getClassCounters().end(), [&](const std::pair<std::string, int> &it)
+                        {
+                            classAverages[it.first] /= it.second;
+                            classStds[it.first] = std::sqrt(classStds[it.first] / it.second - classAverages[it.first] * classAverages[it.first]);
+                        }
+                        );
+
+
+                        tmp = std::abs(classAverages[ database.getClassNames()[0] ] - classAverages[database.getClassNames()[1]]) / (classStds[database.getClassNames()[0]] + classStds[database.getClassNames()[1]]);
+
+                        //std::cout<<classAverages[database.getClassNames()[0]]<<std::endl;
+                        //std::cout<<classStds[database.getClassNames()[0]]<<std::endl;
+
+                        classAAvg.push_back(classAverages[database.getClassNames()[0]]);
+                        classBAvg.push_back(classAverages[database.getClassNames()[1]]);
+
+
+                        classAStd.push_back(classStds[database.getClassNames()[0]]);
+                        classBStd.push_back(classStds[database.getClassNames()[1]]);
+
+                    }
+
+
+                    for (auto const &ob : database.getObjects())
+                    {
+                        if(ob.getClassName() == database.getClassNames()[0])
+                        {
+                            classAMembers.push_back(ob);
+                        }else{
+                            classBMembers.push_back(ob);
+                        }
+
+                    }
+
+
+                    bnu::matrix<double> a(dimension,classAMembers.size());
+                    bnu::matrix<double> b(dimension,classBMembers.size());
+                    bnu::matrix <double> aResult(dimension,dimension);
+                    bnu::matrix<double> bResult(dimension,dimension);
+                    double detA = 0;
+                    double detB = 0;
+                    double z = 0;
+
+                    std::vector<std::vector<int>> combinations;
+                    combinations = comb(database.getNoFeatures(),dimension);
+
+                    std::cout<<combinations.size()<<std::endl;
+
+                    for(int m = 0; m<combinations.size(); m++)
+                    {
+                            detA = 0;
+                            detB = 0;
+                            z = 0;
+
+
+                            for(int j = 0; j< dimension ; j++)
+                            {
+                                //std::cout<<combinations.at(m).at(j)<<std::endl;
+                                for(int i = 0; i<classAMembers.size(); i++)
+                                {
+                                    //std::cout<<classAAvg.at(combinations.at(m).at(j))<<std::endl;
+                                    //std::cout<<classAMembers.at(i).getFeatures()[combinations.at(m).at(j)]<<std::endl;
+                                    a(j,i) = classAMembers.at(i).getFeatures()[combinations.at(m).at(j)] - classAAvg.at(combinations.at(m).at(j));
+                                }
+                            }
+                            for(int j = 0; j< dimension ; j++)
+                            {
+
+                                for(int i = 0; i<classBMembers.size(); i++)
+                                {
+                                    b(j,i) = classBMembers.at(i).getFeatures()[combinations.at(m).at(j)] - classBAvg.at(combinations.at(m).at(j));
+                                }
+                            }
+
+                            for(int i = 0; i<dimension; i++)
+                            {
+                                //std::cout<<"klasa a srednia "<< combinations.at(m).at(i) <<classAAvg.at(combinations.at(m).at(i))<<std::endl;
+                                //std::cout<<"klasa b srednia"<< combinations.at(m).at(i) <<classBAvg.at(combinations.at(m).at(i))<<std::endl;
+                                z+= (classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)))*(classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)));
+                            }
+
+                            z=sqrt(z);
+                            //std::cout<<"roznica srednich"<<z<<std::endl;
+                            //std::cout<<b<<std::endl;
+                            axpy_prod(a, trans(a), aResult, true);
+                            axpy_prod(b, trans(b), bResult, true);
+
+                            std::cout<<aResult<<std::endl;
+                            std::cout<<bResult<<std::endl;
+
+                            detA = determinant(aResult);
+                            detB = determinant(bResult);
+
+                            z/=(detA+detB);
+
+                            if(z>FLD)
+                            {
+                               //std::cout<<"asdasd"<<std::endl;
+                               FLD = z;
+                               bestFeatures.clear();
+                               bestFeatures.insert( bestFeatures.end(), combinations.at(m).begin(), combinations.at(m).end() );
+                            }
+
+
+                      }
+
+                 std::cout<<bestFeatures.at(0)<<"  "<< bestFeatures.at(1)<<std::endl;
+                }
+    }
 }
 
 

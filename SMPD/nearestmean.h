@@ -8,6 +8,7 @@
 class NearestMean : public Classifier
 {
 public:
+    Database data1;
     NearestMean(Database &data);
     void train();
     void execute();

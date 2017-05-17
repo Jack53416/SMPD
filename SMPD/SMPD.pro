@@ -46,3 +46,6 @@ HEADERS  += mainwindow.h \
     KNearestMean.h
 
 FORMS    += mainwindow.ui
+
+DISTFILES += \
+    test.txt
