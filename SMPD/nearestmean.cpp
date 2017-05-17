@@ -6,6 +6,7 @@ NearestMean::NearestMean(Database &data):
 {
     trainingSize=data.getNoObjects()*0.1; //ustawianie wielkosci treningowego
     failureRate= 0.0;
+    data1 = data;
 }
 
 void NearestMean::calculateMean(Database &data){
@@ -44,7 +45,6 @@ void NearestMean::calculateMean(Database &data){
         {
             sumFeatures[classId][m]+= testSeq.at(i).getFeatures().at(m);
 
-
         }
         numberOfObjectsFromClass[classId]++;
 
@@ -76,7 +76,10 @@ void NearestMean::calculateMean(Database &data){
 
 void NearestMean::train(){
     if(originalSet.getNoObjects() > 0)
+    {
         divideDatabase(originalSet);
+        calculateMean(data1);
+    }
 
 }
 
