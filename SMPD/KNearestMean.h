@@ -3,6 +3,7 @@
 
 #include "Classifier.h"
 #include <QTCore>
+
 class KNearestMean : public Classifier
 {
 public:
@@ -13,11 +14,15 @@ public:
 
 private:
    const unsigned int maxIterations;
-   void initClassifier();
    std::vector<float> generateRandomClassCenter(int seed);
    ClosestObject classifyObject(Object obj,  std::vector<Object> &relativeSequence);
    std::vector<Object> calculateMean(Database &data);
-   bool isOriginal(std::vector<float> featureVect, std::vector<Object> sourceVect);
+   bool isOriginal(std::vector<float> &featureVect, std::vector<Object> &sourceVect);
+
+   Database getOneClass(std::vector<Object> &objVector, std::string className);
+   std::vector<Object> performKNM(Database& dataSet);
+   template <typename T> void concatVect(std::vector<T>& a, const std::vector<T>& b);
+
 };
 
 #endif // KNEARESTMEAN_H

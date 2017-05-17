@@ -9,63 +9,125 @@ KNearestMean::KNearestMean(Database &data, int subclasses):
 }
 
 void KNearestMean::train(){
-    unsigned int iterations = 0;
-    while(testSet.getNoClass() != k) // inicjalizuj dopoki nie bedzie takich srodkow podklas, zeby przynajmniej jeden element sie do nich zaklasyfikowal
-    {
-        initClassifier();
-        if(iterations >= 10) // tylko 10, bo mega wolne
-        {
-            k--;
-            iterations = 0;
-            log.push_back("Couldn't subdivide into " + std::to_string(k) + "classes\n decreasing k");
-        }
-        iterations++;
-        qDebug()<<"iteration: "<<iterations;
-    }
-    for(int i =0 ; i< testSeq.size(); i++)
-    {
-        trainingSet.addObject(testSeq.at(i));
-    }
-    trainingSet.save("averages.txt");
+    if(originalSet.getNoObjects() > 0)
+        divideDatabase(originalSet);
 
+    std::vector<std::string> classNames = originalSet.getClassNames();
+    std::vector<Database> separateClasses;
+    std::vector<Object> meanSubclasses;
+
+    for(int i =0; i < classNames.size(); i++)
+    {
+        separateClasses.push_back(getOneClass(testSeq,classNames.at(i)));
+        concatVect(meanSubclasses,performKNM(separateClasses.at(i)));
+    }
+
+    testSeq.clear();
+    testSeq = meanSubclasses;
+    qDebug()<<"meansnr: "<<meanSubclasses.size();
+
+ }
+
+template <typename T> void KNearestMean::concatVect(std::vector<T>& a, const std::vector<T>& b)
+{
+    a.reserve(a.size() + b.size());
+    a.insert(a.end(), b.begin(), b.end());
 }
+
+Database KNearestMean::getOneClass(std::vector<Object> &objVector, std::string className)
+{
+    Database result;
+    for(int i = 0; i < objVector.size();i++)
+    {
+        if(objVector.at(i).getClassName() == className)
+        {
+            result.addObject(objVector.at(i));
+        }
+    }
+    return result;
+}
+
+std::vector<Object> KNearestMean::performKNM(Database &dataSet){ //zwraca wektor srednich z podklas po KnM dla bazy danych z jedną klasą
+
+    std::vector<Object> databaseObjects;
+    std::vector<Object> subclassAverages;
+    unsigned int swapsNr = 0;
+    ClosestObject obj;
+    Database kNMtmp;
+    unsigned int iterations =0;
+    //losuj randomowe srodki;
+    std::vector<float> randomFeatures;
+    int RN;
+    qsrand(QTime::currentTime().msec());;
+    for(int i =0; i< k; i++) //wygeneruj nowe srodki
+    {
+       do{
+            RN = rand()%(dataSet.getNoObjects()-1);
+            randomFeatures = dataSet.getObjects()[RN].getFeatures();
+       }while(!isOriginal(randomFeatures,subclassAverages));
+        subclassAverages.push_back(Object(dataSet.getClassNames().at(0)+ std::to_string(i), randomFeatures));
+    }
+
+    //wstepnie przydziel
+    databaseObjects = dataSet.getObjects();
+
+    for(int i = 0; i < databaseObjects.size(); i++)
+    {
+       obj = classifyObject(databaseObjects.at(i),subclassAverages);
+       kNMtmp.addObject(Object(obj.obj->getClassName(),databaseObjects.at(i).getFeatures()));
+       if(databaseObjects.at(i).getClassName() != obj.obj->getClassName())
+           swapsNr++;
+    }
+    //klasyfikuj dopoki cos sie zmienia
+
+    do{
+        swapsNr = 0;
+        subclassAverages.clear();
+        subclassAverages = calculateMean(kNMtmp);
+        databaseObjects.clear();
+        databaseObjects = kNMtmp.getObjects();
+        kNMtmp.clear();
+
+        for(int i = 0; i < databaseObjects.size(); i++)
+        {
+           obj = classifyObject(databaseObjects.at(i),subclassAverages);
+           kNMtmp.addObject(Object(obj.obj->getClassName(),databaseObjects.at(i).getFeatures()));
+           if(databaseObjects.at(i).getClassName() != obj.obj->getClassName())
+               swapsNr++;
+        }
+
+        iterations++;
+        if(iterations >= maxIterations)
+        {
+            break;
+        }
+    }while(swapsNr > 0);
+
+    qDebug()<<"iterations:"<<iterations;
+    return subclassAverages;
+}
+
 
 void KNearestMean::execute()
 {
     ClosestObject obj;
-    unsigned int iterations = 0;
-
-    while(failureRate > 0)
+    std::string subclassName;
+    std::string s;
+    std::string a;
+    for(unsigned int i = 0; i<trainingSeq.size(); i++ )
     {
-        failureRate = 0;
-        testSeq = calculateMean(testSet);
-
-        trainingSeq.clear();
-        trainingSeq = testSet.getObjects();
-
-        testSet.clear();
-
-        for(int i = 0; i < trainingSeq.size(); i++)
-        {
-           obj = classifyObject(trainingSeq.at(i),testSeq);
-           testSet.addObject(Object(obj.obj->getClassName(),trainingSeq.at(i).getFeatures()));
-           if(trainingSeq.at(i).getClassName() != obj.obj->getClassName())
-               failureRate++;
-
-        }
-        qDebug()<<"fR:"<<failureRate;
-        iterations ++;
-        if(iterations > maxIterations)
-        {
-            log.push_back("Exceeded max iteration nr, terminated");
-            break;
-        }
+        obj=classifyObject(trainingSeq.at(i),testSeq);
+        s = trainingSeq.at(i).getClassName();
+        a = obj.obj->getClassName();
+        qDebug()<<"orginal : "<<QString::fromStdString(s)<<" Found:" << QString::fromStdString(a);
+        subclassName =  obj.obj->getClassName();
+        subclassName = subclassName.substr(0,subclassName.size()-1);
+        if(obj.obj->getClassName().find(trainingSeq.at(i).getClassName()) == std::string::npos)
+            failureRate++;
     }
-    testSet.save("kNM.txt");
-    log.push_back("Database generated in kNM.txt");
-    log.push_back("Iterations: " + std::to_string(iterations));
-    log.push_back("Resulting number of classes: " + std::to_string(testSet.getNoClass()));
-    qDebug()<<"iterations: "<<iterations;
+    failureRate /= trainingSeq.size();
+    log.push_back("Failure Rate:"+ std::to_string(failureRate));
+    qDebug()<<"fRate = "<<failureRate;
 }
 
 std::vector<Object> KNearestMean::calculateMean(Database &data){
@@ -137,37 +199,6 @@ std::vector<Object> KNearestMean::calculateMean(Database &data){
     return result;
 }
 
-
-void KNearestMean::initClassifier()
-{
-    trainingSeq.clear();
-    testSeq.clear();
-    testSet.clear();
-    ClosestObject obj;
-    std::vector<float> randomFeatures;
-
-    for(int i =0; i< k; i++) //wygeneruj nowe srodki
-    {
-        do{
-        randomFeatures = generateRandomClassCenter(QTime::currentTime().msec()); // relatywnie unikalny srodek
-        }while(!isOriginal(randomFeatures,testSeq));
-
-        testSeq.push_back(Object("k"+ std::to_string(i), generateRandomClassCenter(QTime::currentTime().msec())));
-    }
-
-    trainingSeq = originalSet.getObjects();
-
-    for(int i = 0; i < trainingSeq.size(); i++) // zaklasyfikuj obiekty do podklas
-    {
-       obj = classifyObject(trainingSeq.at(i),testSeq);
-       testSet.addObject(Object(obj.obj->getClassName(),trainingSeq.at(i).getFeatures()));
-       if(trainingSeq.at(i).getClassName() != obj.obj->getClassName())
-           failureRate++;
-
-    }
-    testSet.save("kNM.txt");
-}
-
 ClosestObject KNearestMean::classifyObject(Object obj, std::vector<Object> &relativeSequence) //znajduje obiekt z najmniejsza odlegloscia i zwaraca jego ptr z wartoscia
 {
     double tmpDist;
@@ -189,7 +220,7 @@ ClosestObject KNearestMean::classifyObject(Object obj, std::vector<Object> &rela
 
 
 
-std::vector<float> KNearestMean::generateRandomClassCenter(int seed)
+std::vector<float> KNearestMean::generateRandomClassCenter(int seed) //zrezygnowalem z uzycia, do skladania wektora z featurow wielu obiektow
 {
     std::vector<float> result;
     std::vector<Object> databaseObjects = originalSet.getObjects();
@@ -208,10 +239,10 @@ std::vector<float> KNearestMean::generateRandomClassCenter(int seed)
     return result;
 }
 
-bool KNearestMean::isOriginal(std::vector<float> featureVect, std::vector<Object> sourceVect)
+bool KNearestMean::isOriginal(std::vector<float> &featureVect, std::vector<Object> &sourceVect)
 {
     unsigned int similarities = 0;
-    const unsigned int maxSimilarities = 0.9 * featureVect.size();
+    const unsigned int maxSimilarities = 0.2* featureVect.size();
 
     for(unsigned int i = 0; i < sourceVect.size(); i++)
     {
@@ -221,6 +252,7 @@ bool KNearestMean::isOriginal(std::vector<float> featureVect, std::vector<Object
             if(featureVect.at(j) == sourceVect.at(i).getFeatures().at(j))
             {
                 similarities++;
+                //qDebug()<<"simi: "<<similarities;
                 if(similarities > maxSimilarities)
                     return false;
             }
