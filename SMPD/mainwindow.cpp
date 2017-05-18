@@ -298,14 +298,14 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                             axpy_prod(a, trans(a), aResult, true);
                             axpy_prod(b, trans(b), bResult, true);
 
-                            std::cout<<aResult<<std::endl;
-                            std::cout<<bResult<<std::endl;
+                            //std::cout<<aResult<<std::endl;
+                            //std::cout<<bResult<<std::endl;
 
                             detA = determinant(aResult);
                             detB = determinant(bResult);
 
                             z/=(detA+detB);
-
+                            //std::cout<<"wspolczynnik fiszera "<<z<<std::endl;
                             if(z>FLD)
                             {
                                //std::cout<<"asdasd"<<std::endl;
@@ -316,9 +316,18 @@ void MainWindow::on_FSpushButtonCompute_clicked()
 
 
                       }
+                     ui->FStextBrowserDatabaseInfo->append("bestFeatures:");
+                    for(int i = 0; i<bestFeatures.size(); i++)
+                    {
+                        ui->FStextBrowserDatabaseInfo->append(QString::number(bestFeatures.at(i)));
+                    }
 
-                 std::cout<<bestFeatures.at(0)<<"  "<< bestFeatures.at(1)<<std::endl;
+                    ui->FStextBrowserDatabaseInfo->append("Fisher coefficient:" + QString::number(FLD));
+
                 }
+
+
+
     }
 }
 
