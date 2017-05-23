@@ -31,6 +31,7 @@ public:
     virtual void train()=0;
     virtual void execute()=0;
     int k;
+    static std::vector<int> selectedFeatures;
 protected:
     void divideDatabase(Database &data);
     bool checkIfIndexOriginal(unsigned int index);

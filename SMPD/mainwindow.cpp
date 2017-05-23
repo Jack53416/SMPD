@@ -120,6 +120,10 @@ void MainWindow::on_FSpushButtonCompute_clicked()
               }
 
             ui->FStextBrowserDatabaseInfo->append("max_ind: "  +  QString::number(max_ind) + " " + QString::number(FLD));
+            std::vector<int> temp;
+            temp.push_back(max_ind);
+            Classifier::selectedFeatures = temp;
+
           }else{
 
                     int max_ind = 0;
@@ -262,6 +266,8 @@ void MainWindow::on_FSpushButtonCompute_clicked()
 
                     ui->FStextBrowserDatabaseInfo->append("Fisher coefficient:" + QString::number(FLD));
 
+                    Classifier::selectedFeatures = bestFeatures;
+
                 }
 
 
@@ -277,6 +283,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
             ui->FStextBrowserDatabaseInfo->append(QString::number(res.bestFeatures[i]));
         }
         ui->FStextBrowserDatabaseInfo->append("FLD: "+QString::number(res.FLD));
+        Classifier::selectedFeatures = res.bestFeatures;
     }
 }
 

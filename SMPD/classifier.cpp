@@ -1,5 +1,6 @@
 #include "Classifier.h"
 
+std::vector<int> Classifier::selectedFeatures;
 void Classifier::divideDatabase( Database &data)
 {
     unsigned int rN;
@@ -65,11 +66,21 @@ double Classifier::calculateDistance(Object& startVec, Object& endVec) // liczy 
     double sum=0.0;
     std::vector<float> startFeatures = startVec.getFeatures();
     std::vector<float> endFeatures = endVec.getFeatures();
-
-    for(unsigned int i =0; i< startVec.getFeaturesNumber();i++)
+    if(selectedFeatures.empty())
     {
-        sum=startFeatures.at(i) - endFeatures.at(i);
-        result+=sum*sum;
+        for(unsigned int i =0; i< startVec.getFeaturesNumber();i++)
+        {
+            sum=startFeatures.at(i) - endFeatures.at(i);
+            result+=sum*sum;
+        }
+    }
+    else
+    {
+        for(unsigned int i =0; i< Classifier::selectedFeatures.size(); i++)
+        {
+            sum = startFeatures.at(Classifier::selectedFeatures.at(i)) - endFeatures.at(Classifier::selectedFeatures.at(i));
+            result+=sum*sum;
+        }
     }
     result = sqrt(result);
 
