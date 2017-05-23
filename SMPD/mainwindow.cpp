@@ -1,58 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "matrixutil.hpp"
-
+#include "arithmetics.h"
 namespace bnu = boost::numeric::ublas;
-
-std::vector<std::vector<int>> comb(int N, int K)
-{
-    std::string bitmask(K, 1); // K leading 1's
-    bitmask.resize(N, 0); // N-K trailing 0's
-    std::vector<std::vector<int>> vect;
-    int counter = 0;
-
-    // print integers and permute bitmask
-    do {
-        vect.push_back(std::vector<int>());
-        for (int i = 0; i < N; ++i) // [0..N-1] integers
-        {
-            if (bitmask[i])
-            {
-               // std::cout << " " << i;
-                vect.at(counter).push_back(i);
-            }
-
-        }
-        //std::cout << std::endl;
-        counter++;
-    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
-    return vect;
-}
-
-
-int determinant_sign(const bnu::permutation_matrix<std::size_t>& pm)
-{
-    int pm_sign=1;
-    std::size_t size = pm.size();
-    for (std::size_t i = 0; i < size; ++i)
-        if (i != pm(i))
-            pm_sign *= -1.0; // swap_rows would swap a pair of rows here, so we change sign
-    return pm_sign;
-}
-
-double determinant( bnu::matrix<double>& m ) {
-    bnu::permutation_matrix<std::size_t> pm(m.size1());
-    double det = 1.0;
-    if( bnu::lu_factorize(m,pm) ) {
-        det = 0.0;
-    } else {
-        for(int i = 0; i < m.size1(); i++)
-            det *= m(i,i); // multiply by elements on diagonal
-        det = det * determinant_sign( pm );
-    }
-    return det;
-}
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -132,18 +82,6 @@ void MainWindow::on_FSpushButtonOpenFile_clicked()
 void MainWindow::on_FSpushButtonCompute_clicked()
 {
     int dimension = ui->FScomboBox->currentText().toInt();
-
-    bnu::matrix<double> m(3, 3);
-        for (unsigned i = 0; i < m.size1() ; ++i) {
-            for (unsigned j = 0; j < m.size2() ; ++j) {
-                m (i, j) = 3 * i + sqrt(j+1); // fill matrix
-                m(i,j) = m(i,j)*m(i,j);       // with some numbers
-            }
-        }
-        double k = determinant(m);
-        std::cout<<k<<std::endl;
-
-
     if( ui->FSradioButtonFisher ->isChecked())
     {
     if (dimension == 1 && database.getNoClass() == 2)
@@ -232,7 +170,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                         classBStd.push_back(classStds[database.getClassNames()[1]]);
 
                     }
-
+                    ///wszystkie srednie+ dewiacje kl. 1 i drugiej policzone
 
                     for (auto const &ob : database.getObjects())
                     {
@@ -243,7 +181,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                             classBMembers.push_back(ob);
                         }
 
-                    }
+                    }///klasy rozdzielone
 
 
                     bnu::matrix<double> a(dimension,classAMembers.size());
@@ -281,7 +219,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
 
                                 for(int i = 0; i<classBMembers.size(); i++)
                                 {
-                                    b(j,i) = classBMembers.at(i).getFeatures()[combinations.at(m).at(j)] - classBAvg.at(combinations.at(m).at(j));
+                                    b(j,i) = classBMembers.at(i).getFeatures()[combinations.at(m).at(j)] - classBAvg.at(combinations.at(m).at(j)); ///Wartość danej cechy klasy B w konkretniej kombinacji - jej srednia
                                 }
                             }
 
@@ -292,10 +230,10 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                                 z+= (classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)))*(classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)));
                             }
 
-                            z=sqrt(z);
+                            z=sqrt(z); /// rezem z poprzednim forem ||UA(i) - IB(i)||
                             //std::cout<<"roznica srednich"<<z<<std::endl;
                             //std::cout<<b<<std::endl;
-                            axpy_prod(a, trans(a), aResult, true);
+                            axpy_prod(a, trans(a), aResult, true); ///ares, bres = S matrix
                             axpy_prod(b, trans(b), bResult, true);
 
                             //std::cout<<aResult<<std::endl;
@@ -311,7 +249,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                                //std::cout<<"asdasd"<<std::endl;
                                FLD = z;
                                bestFeatures.clear();
-                               bestFeatures.insert( bestFeatures.end(), combinations.at(m).begin(), combinations.at(m).end() );
+                               bestFeatures.insert( bestFeatures.end(), combinations.at(m).begin(), combinations.at(m).end() ); ///ustawia dana kombinacje jako best feature
                             }
 
 
@@ -328,6 +266,17 @@ void MainWindow::on_FSpushButtonCompute_clicked()
 
 
 
+    }
+
+    else if(ui->FSradioButtonSFS->isChecked() && database.getNoClass() == 2)
+    {
+        FisherResult res = SFS(database,dimension);
+        ui->FStextBrowserDatabaseInfo->append("Best Features:");
+        for(int i = 0; i<res.bestFeatures.size();++i)
+        {
+            ui->FStextBrowserDatabaseInfo->append(QString::number(res.bestFeatures[i]));
+        }
+        ui->FStextBrowserDatabaseInfo->append("FLD: "+QString::number(res.FLD));
     }
 }
 
@@ -403,7 +352,6 @@ void MainWindow::on_CpushButtonTrain_clicked()
         ui->CpushButtonExecute->setEnabled(true);
         ui->CtextBrowser->append("Training Successful!\nTrain Size:" + QString::number(classifier->getTrainSize()));
         ui->CtextBrowser->append("Test Size:" + QString::number(classifier->getTestSize()));
-        ui->CtextBrowser->append(QString::number(ui->comboBoxTrainingPart->currentText().toInt()));
     }
 }
 
