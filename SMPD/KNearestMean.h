@@ -10,6 +10,9 @@ public:
     KNearestMean(Database &data, int subclasses);
     void train();
     void execute();
+    double performCrossValidation(int K);
+    std::string dumpLog(bool full);
+
     std::vector<std::string> log;
 
 private:

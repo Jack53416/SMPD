@@ -11,6 +11,7 @@ public:
     NearestNeighbour(Database &data);
     void train();
     void execute();
+    std::string dumpLog(bool full);
 
     std::map<Object*, ClosestObject> log; //zeby wyswietlic pelne dane w GUI
 

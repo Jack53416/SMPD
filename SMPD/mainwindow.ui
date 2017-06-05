@@ -308,8 +308,8 @@
        <rect>
         <x>700</x>
         <y>10</y>
-        <width>256</width>
-        <height>192</height>
+        <width>261</width>
+        <height>451</height>
        </rect>
       </property>
      </widget>
@@ -323,7 +323,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton">
+     <widget class="QRadioButton" name="radioButton_Basic">
       <property name="geometry">
        <rect>
         <x>380</x>
@@ -339,7 +339,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_2">
+     <widget class="QRadioButton" name="radioButton_Bootstrap">
       <property name="geometry">
        <rect>
         <x>380</x>
@@ -352,7 +352,7 @@
        <string>Bootstraping</string>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_3">
+     <widget class="QRadioButton" name="radioButton_CrossValidation">
       <property name="geometry">
        <rect>
         <x>380</x>
@@ -365,6 +365,42 @@
        <string>Cross - validation</string>
       </property>
      </widget>
+     <widget class="QLabel" name="labelTrainUnit">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>70</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>%</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="CcomboBootstrapK">
+      <property name="geometry">
+       <rect>
+        <x>570</x>
+        <y>70</y>
+        <width>71</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="ClabelBootstrapK">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>70</y>
+        <width>31</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt; K:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -374,7 +410,7 @@
      <x>0</x>
      <y>0</y>
      <width>991</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

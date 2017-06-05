@@ -118,3 +118,61 @@ ClosestObject NearestMean::classifyObject(Object obj) //znajduje obiekt z najmni
            <<"Znaleziona:"<<result.obj->getClassName().c_str();
     return result;
 }
+
+
+double NearestMean::performCrossValidation(int K)
+{
+    double avgFailRate = 0.0;
+    auto vect = this->originalSet.getObjects();
+    std::vector<Object> mixedObj;
+
+    srand(QTime::currentTime().msec());
+    int rN =0;
+    while(vect.size() > 1)  //Przelosowuje wektor aby dane byly losowo rozlozone
+    {
+        rN = qrand()%(vect.size()-1);
+        mixedObj.push_back(vect.at(rN));
+        deleteIndex(rN,vect);
+    }
+    mixedObj.push_back(vect.back());
+    qDebug()<<"mixedObj size:"<<mixedObj.size();
+
+    int lastIndx = 0;
+    int chunk = (int)mixedObj.size()/K;
+    this->trainingSize = chunk;
+    this->train();
+
+    for(int i =0; i<K; i++) // wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
+    {
+        this->trainingSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
+        lastIndx+= chunk;
+        this->execute();
+        avgFailRate += this->failureRate;
+        qDebug()<<"FR:"<<this->failureRate;
+    }
+
+    avgFailRate/= K;
+    qDebug()<<"FR avg:"<<avgFailRate;
+    return avgFailRate;
+}
+
+std::string NearestMean::dumpLog(bool full)
+{
+    std::string result;
+    std::map<Object*, ClosestObject>::iterator it;
+    it = log.begin();
+    if(full)
+    {
+        while(it!= log.end())
+        {
+
+            result += "Orig class :"+ it->first->getClassName()
+                    + "\nClass found:" + it->second.obj->getClassName() + "\n-----\n";
+            it++;
+        }
+    }
+
+    result += "Failure Rate: " + std::to_string(this->failureRate) + "\n";
+    return result;
+}
+

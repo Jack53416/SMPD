@@ -28,15 +28,6 @@ void Classifier::divideDatabase( Database &data)
     {
         deleteIndex(trainIndexes[i], testSeq);
     }
-
-    //Debug
-   /* for(unsigned int i =0; i<testSeq.size(); i++)
-    {
-        this->testSet.addObject(testSeq[i]); //dodano petle dla debugu
-    }
-    trainingSet.save("trainSet.txt"); //dodano dla debugu
-    testSet.save("testSet.txt");
-    qDebug()<<"TrainingSeq:"<<trainingSeq.size() << "TestSeq:" << testSeq.size()<<"BaseSize" << data.getNoObjects();*/
 }
 
 
@@ -85,4 +76,58 @@ double Classifier::calculateDistance(Object& startVec, Object& endVec) // liczy 
     result = sqrt(result);
 
     return result;
+}
+
+double Classifier::performBootstrap(int K)
+{
+    double avgFailRate = 0.0;
+
+    for(int i =0; i<K; i++)
+    {
+        this->execute();
+        avgFailRate += this->failureRate;
+        this->train();
+    }
+    avgFailRate /= K;
+
+    return avgFailRate;
+}
+
+double Classifier::performCrossValidation(int K)
+{
+    double avgFailRate = 0.0;
+    auto vect = this->originalSet.getObjects();
+    std::vector<Object> mixedObj;
+
+    srand(QTime::currentTime().msec());
+    int rN =0;
+    while(vect.size() > 1)  //Przelosowuje wektor aby dane byly losowo rozlozone
+    {
+        rN = qrand()%(vect.size()-1);
+        mixedObj.push_back(vect.at(rN));
+        deleteIndex(rN,vect);
+    }
+    mixedObj.push_back(vect.back());
+    qDebug()<<"mixedObj size:"<<mixedObj.size();
+
+    int lastIndx = 0;
+    int chunk = (int)mixedObj.size()/K;
+    std::vector<Object> tmpSeq;
+    this->trainingSize = chunk;
+
+    for(int i =0; i<K; i++) // wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
+    {
+        this->trainingSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
+        tmpSeq = mixedObj;
+        tmpSeq.erase(tmpSeq.begin()+lastIndx,tmpSeq.begin()+chunk+lastIndx);
+        this->testSeq = tmpSeq;
+        lastIndx+= chunk;
+        this->execute();
+        avgFailRate += this->failureRate;
+        qDebug()<<"FR:"<<this->failureRate;
+    }
+
+    avgFailRate/= K;
+    qDebug()<<"FR avg:"<<avgFailRate;
+    return avgFailRate;
 }

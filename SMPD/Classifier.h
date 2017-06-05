@@ -28,9 +28,12 @@ public:
 
     double calculateDistance(Object& startVec, Object& endVec);
 
+    double performBootstrap(int K);
+    virtual double performCrossValidation(int K);
+    virtual std::string dumpLog(bool full) = 0;
+
     virtual void train()=0;
     virtual void execute()=0;
-    int k;
     static std::vector<int> selectedFeatures;
 protected:
     void divideDatabase(Database &data);
@@ -38,6 +41,7 @@ protected:
     static void deleteIndex(unsigned int index, std::vector<Object> & vec);
 
     //variables
+    int k;
     unsigned int trainingSize;
     double failureRate;
 

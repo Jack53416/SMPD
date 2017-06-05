@@ -15,14 +15,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->CcomboBoxClassifiers->addItem("kNN");
     ui->CcomboBoxClassifiers->addItem("NM");
     ui->CcomboBoxClassifiers->addItem("kNM");
+    ui->CcomboBoxK->addItem("1");
     ui->CcomboBoxK->addItem("3");
     ui->CcomboBoxK->addItem("5");
     ui->CcomboBoxK->addItem("7");
     ui->CcomboBoxK->addItem("9");
-
-    for(int i = 10; i<100; i+=10)
+    ui->CcomboBoxK->addItem("11");
+    for(int i = 1; i<16; i++)
     {
-        ui->comboBoxTrainingPart->addItem(QString::number(i));
+        ui->CcomboBootstrapK->addItem(QString::number(i));
     }
 }
 
@@ -126,7 +127,6 @@ void MainWindow::on_FSpushButtonCompute_clicked()
 
           }else{
 
-                    int max_ind = 0;
                     double FLD = 0;
                     double tmp;
                     std::vector<int> bestFeatures(dimension);
@@ -354,82 +354,32 @@ void MainWindow::on_CpushButtonTrain_clicked()
 
     if(classifier)
     {
-        classifier->setTrainSize(ui->comboBoxTrainingPart->currentText().toInt());
-        classifier->train();
+        if(!ui->radioButton_CrossValidation->isChecked())
+        {
+            classifier->setTrainSize(ui->comboBoxTrainingPart->currentText().toInt());
+            classifier->train();
+            ui->CtextBrowser->append("Training Successful!\nTrain Size:" + QString::number(classifier->getTrainSize()));
+            ui->CtextBrowser->append("Test Size:" + QString::number(classifier->getTestSize()));
+        }
         ui->CpushButtonExecute->setEnabled(true);
-        ui->CtextBrowser->append("Training Successful!\nTrain Size:" + QString::number(classifier->getTrainSize()));
-        ui->CtextBrowser->append("Test Size:" + QString::number(classifier->getTestSize()));
     }
 }
 
 void MainWindow::on_CpushButtonExecute_clicked()
 {
-    std::map<Object* , ClosestObject>::iterator it;
-    int classifierChoice = ui->CcomboBoxClassifiers->currentIndex();
 
-    NearestNeighbour* ptrNN;
-    KNearestNeighbours* ptrKNN;
-    NearestMean* ptrNM;
-    KNearestMean* ptrKNM;
     if(classifier)
     {
-        switch(classifierChoice)
+        if(ui->radioButton_Bootstrap->isChecked())
+             ui->CtextBrowser->append("Avg FAil: " + QString::number(
+                                          classifier->performBootstrap(ui->CcomboBootstrapK->currentText().toInt())));
+        else if(ui->radioButton_CrossValidation->isChecked())
+             ui->CtextBrowser->append("Avg FAil Cross: " + QString::number(
+                                          classifier->performCrossValidation(ui->comboBoxTrainingPart->currentText().toInt())));
+        else
         {
-            case 0: //nn
-
-                ptrNN = (NearestNeighbour*) classifier;
-                ptrNN->execute();
-                it = ptrNN->log.begin();
-                while(it != ptrNN->log.end()) // dla wyswietlania pelnego loga
-                {
-                    ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
-                                             + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
-                                             + " dist = " + QString::number(it->second.distance));
-                    it++;
-                }
-                ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
-                break;
-
-             case 1: //knn
-
-                ptrKNN = (KNearestNeighbours*) classifier;
-                ui->CtextBrowser->append(QString::number(classifierChoice));
-                ptrKNN->k = ui->CcomboBoxK->currentText().toInt();
-                ptrKNN->execute(database);
-                it = ptrKNN->log.begin();
-                while(it != ptrKNN->log.end()) // dla wyswietlania pelnego loga
-                {
-                   ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
-                                             + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
-                                             + " dist = " + QString::number(it->second.distance));
-                    it++;
-                }
-                ui->CtextBrowser->append("knnfailure rate =" + QString::number(classifier->getFailRate()));
-                break;
-
-            case 2: //nm
-
-                ptrNM = (NearestMean*) classifier;
-                ptrNM->execute();
-                it = ptrNM->log.begin();
-                while(it != ptrNM->log.end()) // dla wyswietlania pelnego loga
-                {
-                    ui->CtextBrowser->append("Orig cs:"+ QString::fromStdString(it->first->getClassName())
-                                             + " Cs found:" + QString::fromStdString(it->second.obj->getClassName())
-                                             + " dist = " + QString::number(it->second.distance));
-                    it++;
-                }
-                ui->CtextBrowser->append("failure rate =" + QString::number(classifier->getFailRate()));
-                break;
-        case 3: //knM
-            ptrKNM = (KNearestMean*) classifier;
-            classifier->execute();
-            for(int i = 0; i <ptrKNM->log.size(); i++ )
-            {
-                ui->CtextBrowser->append(QString::fromStdString(ptrKNM->log.at(i)));
-            }
-            break;
-
+             classifier->execute();
+             ui->CtextBrowser->append(QString::fromStdString(classifier->dumpLog(false)));
         }
     }
     delete classifier;
@@ -444,4 +394,57 @@ void MainWindow::on_comboBoxTrainingPart_currentTextChanged(const QString &arg1)
     {
         classifier->setTrainSize(arg1.toInt());
     }
+}
+
+void MainWindow::on_radioButton_Basic_toggled(bool checked)
+{
+    if(checked)
+    {
+        ui->ClabelTraningPart->setText("<html><head/><body><p><span style='font-size:9pt;'>Training part:</span></p></body></html>");
+        ui->labelTrainUnit->setVisible(true);
+        ui->CcomboBootstrapK->setVisible(false);
+        ui->ClabelBootstrapK->setVisible(false);
+        ui->comboBoxTrainingPart->clear();
+
+        for(int i = 10; i<100; i+=10)
+        {
+            ui->comboBoxTrainingPart->addItem(QString::number(i));
+        }
+    }
+}
+
+void MainWindow::on_radioButton_Bootstrap_toggled(bool checked)
+{
+    if(checked)
+    {
+        ui->ClabelTraningPart->setText("<html><head/><body><p><span style='font-size:9pt;'>Training part:</span></p></body></html>");
+        ui->labelTrainUnit->setVisible(true);
+        ui->comboBoxTrainingPart->clear();
+        ui->CcomboBootstrapK->setVisible(true);
+        ui->ClabelBootstrapK->setVisible(true);
+
+        for(int i = 10; i<100; i+=10)
+        {
+            ui->comboBoxTrainingPart->addItem(QString::number(i));
+        }
+
+    }
+
+}
+
+void MainWindow::on_radioButton_CrossValidation_toggled(bool checked)
+{
+    if(checked)
+    {
+        ui->ClabelTraningPart->setText("<html><head/><body><p><span style=' font-size:9pt;'>Training K:</span></p></body></html>");
+        ui->labelTrainUnit->setVisible(false);
+        ui->comboBoxTrainingPart->clear();
+        ui->CcomboBootstrapK->setVisible(false);
+        ui->ClabelBootstrapK->setVisible(false);
+        for(int i = 2; i<16; i++)
+        {
+            ui->comboBoxTrainingPart->addItem(QString::number(i));
+        }
+    }
+
 }

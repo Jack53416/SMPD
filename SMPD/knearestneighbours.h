@@ -12,6 +12,7 @@ public:
     KNearestNeighbours(Database &data);
     void train();
     void execute();
+    std::string dumpLog(bool full);
     void execute(Database &data);
     ClosestObject classifyObject(Object obj, Database &data);
     std::map<Object*, ClosestObject> log; //zeby wyswietlic pelne dane w GUI

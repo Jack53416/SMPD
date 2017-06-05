@@ -65,6 +65,14 @@ private slots:
 
     void on_comboBoxTrainingPart_currentTextChanged(const QString &arg1);
 
+
+
+    void on_radioButton_Basic_toggled(bool checked);
+
+    void on_radioButton_Bootstrap_toggled(bool checked);
+
+    void on_radioButton_CrossValidation_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 

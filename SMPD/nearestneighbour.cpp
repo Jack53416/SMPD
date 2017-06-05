@@ -44,9 +44,24 @@ ClosestObject NearestNeighbour::classifyObject(Object obj) //znajduje obiekt z n
             result.obj=&testSeq.at(i);
         }
     }
-    //debug
-   qDebug()<<"najmnieszy euklides ="<<result.distance;
-    qDebug()<<"Oryginalna klasa:"<<obj.getClassName().c_str()
-           <<"Znaleziona:"<<result.obj->getClassName().c_str();
+    return result;
+}
+
+std::string NearestNeighbour::dumpLog(bool full)
+{
+    std::string result;
+    std::map<Object*, ClosestObject>::iterator it;
+    if(full){
+        it = log.begin();
+        while(it!= log.end())
+        {
+
+            result += "Orig class :"+ it->first->getClassName()
+                    + "\nClass found:" + it->second.obj->getClassName() + "\n-----\n";
+            it++;
+        }
+    }
+
+    result += "Failure Rate: " + std::to_string(this->failureRate) + "\n";
     return result;
 }

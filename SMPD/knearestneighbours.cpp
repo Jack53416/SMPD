@@ -88,12 +88,13 @@ ClosestObject KNearestNeighbours::classifyObject(Object obj, Database &data) //z
         free(classes);
     return result;
 }
-void KNearestNeighbours::execute(Database &data){
+void KNearestNeighbours::execute()
+{
     ClosestObject obj;
     for(unsigned int i = 0; i<trainingSeq.size(); i++ )
     {
 
-        obj=classifyObject(this->trainingSeq.at(i),data);
+        obj=classifyObject(this->trainingSeq.at(i),originalSet);
         log.insert(std::make_pair(&trainingSeq.at(i), obj)); //tworzy log, do przekazania dla gui
         qDebug()<<"Oryginalna klasa:"<<trainingSeq.at(i).getClassName().c_str();
         qDebug()<<"zdobyta klasa:"<<obj.obj->getClassName().c_str();
@@ -102,5 +103,26 @@ void KNearestNeighbours::execute(Database &data){
             failureRate++;
     }
     failureRate /= trainingSeq.size();
+
 }
-void KNearestNeighbours::execute(){}
+
+std::string KNearestNeighbours::dumpLog(bool full)
+{
+    std::string result;
+    std::map<Object*, ClosestObject>::iterator it;
+
+    if(full){
+        it = log.begin();
+        while(it!= log.end())
+        {
+
+            result += "Orig class :"+ it->first->getClassName()
+                    + "\nClass found:" + it->second.obj->getClassName() + "\n-----\n";
+            it++;
+        }
+    }
+    result += "K: " + std::to_string(this->k) + "\n-----\n";
+    result += "Failure Rate: " + std::to_string(this->failureRate) + "\n";
+
+    return result;
+}
