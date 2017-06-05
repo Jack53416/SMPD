@@ -1,11 +1,11 @@
 #include "knearestneighbours.h"
 
-KNearestNeighbours::KNearestNeighbours(Database &data):
+KNearestNeighbours::KNearestNeighbours(Database &data, int input):
     Classifier(data)
 {
     trainingSize=data.getNoObjects()*0.1; //ustawianie wielkosci treningowego
     failureRate= 0.0;
-    k = 3;
+    k = input;
 }
 
 
@@ -70,15 +70,20 @@ ClosestObject KNearestNeighbours::classifyObject(Object obj, Database &data) //z
     }
     result.distance = 0;
     maxValue = classes[0];
-    for(unsigned int i = 0; i< data.getNoClass(); i++)
+    if(maxValue<classes[1])
     {
-        if(maxValue<classes[i])
+        maxValue = classes[1];
+        maxIndex = 1;
+        className = data.getClassNames().at(maxIndex);
+    }else{
+        if(maxValue == classes[1])
         {
-            maxValue = classes[i];
-            maxIndex = i;
+            className = results[0].obj->getClassName();
+
+        }else{
+            className = data.getClassNames().at(maxIndex);
         }
     }
-        className = data.getClassNames().at(maxIndex);
     result.obj = results[0].obj;
     result.obj->setClassName(className);
 

@@ -35,13 +35,13 @@ public:
     virtual void train()=0;
     virtual void execute()=0;
     static std::vector<int> selectedFeatures;
+    int k;
 protected:
     void divideDatabase(Database &data);
     bool checkIfIndexOriginal(unsigned int index);
     static void deleteIndex(unsigned int index, std::vector<Object> & vec);
 
     //variables
-    int k;
     unsigned int trainingSize;
     double failureRate;
 
