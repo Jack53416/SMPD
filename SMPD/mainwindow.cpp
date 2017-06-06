@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->CcomboBoxClassifiers->addItem("kNN");
     ui->CcomboBoxClassifiers->addItem("NM");
     ui->CcomboBoxClassifiers->addItem("kNM");
+<<<<<<< HEAD
     ui->CcomboBoxK->addItem("1");
     ui->CcomboBoxK->addItem("3");
     ui->CcomboBoxK->addItem("5");
@@ -24,7 +25,21 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->CcomboBootstrapK->setVisible(false);
     ui->ClabelBootstrapK->setVisible(false);
     for(int i = 1; i<16; i++)
+=======
+    ui->labelTrainUnit->setVisible(true);
+    ui->CcomboBootstrapK->setVisible(false);
+    ui->ClabelBootstrapK->setVisible(false);
+    ui->comboBoxTrainingPart->clear();
+
+    for(int i = 10; i<100; i+=10)
     {
+        ui->comboBoxTrainingPart->addItem(QString::number(i));
+    }
+
+    for(int i = 1; i<30; i++)
+>>>>>>> origin/start
+    {
+        ui->CcomboBoxK->addItem(QString::number(i));
         ui->CcomboBootstrapK->addItem(QString::number(i));
     }
     for(int i = 10; i<100; i+=10)
@@ -194,13 +209,13 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                     }///klasy rozdzielone
 
 
-                    bnu::matrix<double> a(dimension,classAMembers.size());
-                    bnu::matrix<double> b(dimension,classBMembers.size());
-                    bnu::matrix <double> aResult(dimension,dimension);
-                    bnu::matrix<double> bResult(dimension,dimension);
+                    bnu::matrix<double> a(dimension,classAMembers.size());//macierz klasy A
+                    bnu::matrix<double> b(dimension,classBMembers.size());//macierz klasy B
+                    bnu::matrix <double> aResult(dimension,dimension);//macierz kowariancji A
+                    bnu::matrix<double> bResult(dimension,dimension);//macierz kowariancji B
                     double detA = 0;
                     double detB = 0;
-                    double z = 0;
+                    double result = 0;
 
                     std::vector<std::vector<int>> combinations;
                     combinations = comb(database.getNoFeatures(),dimension);
@@ -211,7 +226,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                     {
                             detA = 0;
                             detB = 0;
-                            z = 0;
+                            result = 0;
 
 
                             for(int j = 0; j< dimension ; j++)
@@ -237,10 +252,10 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                             {
                                 //std::cout<<"klasa a srednia "<< combinations.at(m).at(i) <<classAAvg.at(combinations.at(m).at(i))<<std::endl;
                                 //std::cout<<"klasa b srednia"<< combinations.at(m).at(i) <<classBAvg.at(combinations.at(m).at(i))<<std::endl;
-                                z+= (classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)))*(classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)));
+                                result+= (classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)))*(classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)));
                             }
 
-                            z=sqrt(z); /// rezem z poprzednim forem ||UA(i) - IB(i)||
+                            result=sqrt(result); /// rezem z poprzednim forem ||UA(i) - IB(i)||
                             //std::cout<<"roznica srednich"<<z<<std::endl;
                             //std::cout<<b<<std::endl;
                             axpy_prod(a, trans(a), aResult, true); ///ares, bres = S matrix
@@ -252,12 +267,12 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                             detA = determinant(aResult);
                             detB = determinant(bResult);
 
-                            z/=(detA+detB);
+                            result/=(detA+detB);
                             //std::cout<<"wspolczynnik fiszera "<<z<<std::endl;
-                            if(z>FLD)
+                            if(result>FLD)
                             {
                                //std::cout<<"asdasd"<<std::endl;
-                               FLD = z;
+                               FLD = result;
                                bestFeatures.clear();
                                bestFeatures.insert( bestFeatures.end(), combinations.at(m).begin(), combinations.at(m).end() ); ///ustawia dana kombinacje jako best feature
                             }
@@ -347,7 +362,7 @@ void MainWindow::on_CpushButtonTrain_clicked()
         classifier = new NearestNeighbour(database);
         break;
         case 1: //knn
-        classifier = new KNearestNeighbours(database);
+        classifier = new KNearestNeighbours(database,ui->CcomboBoxK->currentText().toInt());
         break;
         case 2: //nm
         classifier = new NearestMean(database);

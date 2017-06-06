@@ -9,7 +9,7 @@
 class KNearestNeighbours: public Classifier
 {
 public:
-    KNearestNeighbours(Database &data);
+    KNearestNeighbours(Database &data, int input);
     void train();
     void execute();
     std::string dumpLog(bool full);
