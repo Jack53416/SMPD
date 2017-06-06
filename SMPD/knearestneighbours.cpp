@@ -10,7 +10,7 @@ KNearestNeighbours::KNearestNeighbours(Database &data):
 
 
 void KNearestNeighbours::train(){
-    if(originalSet.getNoObjects() > 0)
+    if(originalSet.getNoObjects() > 0 && !crossValidation)
         divideDatabase(originalSet);
 
 }
@@ -27,8 +27,8 @@ ClosestObject KNearestNeighbours::classifyObject(Object obj, Database &data) //z
     int maxValue = 0;
     std::string className;
 
-    result.distance=calculateDistance(obj,testSeq.at(0));
-    result.obj=&testSeq.at(0);
+    result.distance=calculateDistance(obj,trainingSeq.at(0));
+    result.obj=&trainingSeq.at(0);
 
 
     for(unsigned int i = 0; i<data.getNoClass();i++)
@@ -39,16 +39,16 @@ ClosestObject KNearestNeighbours::classifyObject(Object obj, Database &data) //z
     for(int i = 0; i<k; i++)
     {
         results[i].distance=2147483647;
-        results[i].obj=&testSeq.at(i);
+        results[i].obj=&trainingSeq.at(i);
     }
 
-    for(unsigned int i = 0; i<testSeq.size(); i++)
+    for(unsigned int i = 0; i<trainingSeq.size(); i++)
     {
-        tmpDist=calculateDistance(obj,testSeq.at(i));
+        tmpDist=calculateDistance(obj,trainingSeq.at(i));
         if(tmpDist < results[k-1].distance)
         {
             results[k-1].distance=tmpDist;
-            results[k-1].obj=&testSeq.at(i);
+            results[k-1].obj=&trainingSeq.at(i);
             std::sort(results, results + k,
                       [](ClosestObject const & a, ClosestObject const & b) -> bool
                       { return a.distance < b.distance; } );
@@ -91,18 +91,18 @@ ClosestObject KNearestNeighbours::classifyObject(Object obj, Database &data) //z
 void KNearestNeighbours::execute()
 {
     ClosestObject obj;
-    for(unsigned int i = 0; i<trainingSeq.size(); i++ )
+    for(unsigned int i = 0; i<testSeq.size(); i++ )
     {
 
-        obj=classifyObject(this->trainingSeq.at(i),originalSet);
-        log.insert(std::make_pair(&trainingSeq.at(i), obj)); //tworzy log, do przekazania dla gui
-        qDebug()<<"Oryginalna klasa:"<<trainingSeq.at(i).getClassName().c_str();
+        obj=classifyObject(this->testSeq.at(i),originalSet);
+        log.insert(std::make_pair(&testSeq.at(i), obj)); //tworzy log, do przekazania dla gui
+        qDebug()<<"Oryginalna klasa:"<<testSeq.at(i).getClassName().c_str();
         qDebug()<<"zdobyta klasa:"<<obj.obj->getClassName().c_str();
         qDebug()<<"------------";
-        if(trainingSeq.at(i).getClassName() != obj.obj->getClassName())
+        if(testSeq.at(i).getClassName() != obj.obj->getClassName())
             failureRate++;
     }
-    failureRate /= trainingSeq.size();
+    failureRate /= testSeq.size();
 
 }
 

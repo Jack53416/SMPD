@@ -21,9 +21,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->CcomboBoxK->addItem("7");
     ui->CcomboBoxK->addItem("9");
     ui->CcomboBoxK->addItem("11");
+    ui->CcomboBootstrapK->setVisible(false);
+    ui->ClabelBootstrapK->setVisible(false);
     for(int i = 1; i<16; i++)
     {
         ui->CcomboBootstrapK->addItem(QString::number(i));
+    }
+    for(int i = 10; i<100; i+=10)
+    {
+        ui->comboBoxTrainingPart->addItem(QString::number(i));
     }
 }
 
@@ -379,7 +385,7 @@ void MainWindow::on_CpushButtonExecute_clicked()
         else
         {
              classifier->execute();
-             ui->CtextBrowser->append(QString::fromStdString(classifier->dumpLog(false)));
+             ui->CtextBrowser->append(QString::fromStdString(classifier->dumpLog(true)));
         }
     }
     delete classifier;

@@ -9,7 +9,7 @@ KNearestMean::KNearestMean(Database &data, int subclasses):
 }
 
 void KNearestMean::train(){
-    if(originalSet.getNoObjects() > 0)
+    if(originalSet.getNoObjects() > 0 && !crossValidation)
         divideDatabase(originalSet);
 
     std::vector<std::string> classNames = originalSet.getClassNames();
@@ -18,12 +18,12 @@ void KNearestMean::train(){
 
     for(int i =0; i < classNames.size(); i++)
     {
-        separateClasses.push_back(getOneClass(testSeq,classNames.at(i)));
+        separateClasses.push_back(getOneClass(trainingSeq,classNames.at(i)));
         concatVect(meanSubclasses,performKNM(separateClasses.at(i)));
     }
 
-    testSeq.clear();
-    testSeq = meanSubclasses;
+    trainingSeq.clear();
+    trainingSeq = meanSubclasses;
     qDebug()<<"meansnr: "<<meanSubclasses.size();
 
  }
@@ -112,20 +112,20 @@ void KNearestMean::execute()
 {
     ClosestObject obj;
     std::string subclassName;
-    std::string s;
-    std::string a;
-    for(unsigned int i = 0; i<trainingSeq.size(); i++ )
+    std::string originalClassName;
+    std::string currentClassName;
+    for(unsigned int i = 0; i<testSeq.size(); i++ )
     {
-        obj=classifyObject(trainingSeq.at(i),testSeq);
-        s = trainingSeq.at(i).getClassName();
-        a = obj.obj->getClassName();
-        qDebug()<<"orginal : "<<QString::fromStdString(s)<<" Found:" << QString::fromStdString(a);
+        obj=classifyObject(testSeq.at(i),trainingSeq);
+        originalClassName = testSeq.at(i).getClassName();
+        currentClassName = obj.obj->getClassName();
+        qDebug()<<"orginal : "<<QString::fromStdString(originalClassName)<<" Found:" << QString::fromStdString(currentClassName);
         subclassName =  obj.obj->getClassName();
         subclassName = subclassName.substr(0,subclassName.size()-1);
-        if(obj.obj->getClassName().find(trainingSeq.at(i).getClassName()) == std::string::npos)
+        if(obj.obj->getClassName().find(testSeq.at(i).getClassName()) == std::string::npos)
             failureRate++;
     }
-    failureRate /= trainingSeq.size();
+    failureRate /= testSeq.size();
     log.push_back("Failure Rate:"+ std::to_string(failureRate));
     qDebug()<<"fRate = "<<failureRate;
 }
@@ -142,7 +142,7 @@ std::vector<Object> KNearestMean::calculateMean(Database &data){
     databaseObjects = data.getObjects();
 
     sumFeatures = new float*[data.getNoClass()];
-    for(unsigned int i = 0; i<data.getNoClass();i++)
+    for(unsigned int i = 0; i<data.getNoClass();i++) //preAlokacja wektora sumfeatures
     {
         sumFeatures[i] = new float[data.getNoFeatures()];
     }
@@ -219,26 +219,6 @@ ClosestObject KNearestMean::classifyObject(Object obj, std::vector<Object> &rela
 }
 
 
-
-std::vector<float> KNearestMean::generateRandomClassCenter(int seed) //zrezygnowalem z uzycia, do skladania wektora z featurow wielu obiektow
-{
-    std::vector<float> result;
-    std::vector<Object> databaseObjects = originalSet.getObjects();
-
-    unsigned int rObj = 0.0;
-    unsigned int rFeat = 0.0;
-
-    qsrand(seed);
-
-    for(unsigned int i = 0; i < originalSet.getNoFeatures(); i++)
-    {
-        rObj = rand() % (databaseObjects.size()-1);
-        rFeat = rand() % (originalSet.getNoFeatures() - 1);
-        result.push_back(databaseObjects.at(rObj).getFeatures().at(rFeat));
-    }
-    return result;
-}
-
 bool KNearestMean::isOriginal(std::vector<float> &featureVect, std::vector<Object> &sourceVect)
 {
     unsigned int similarities = 0;
@@ -262,41 +242,6 @@ bool KNearestMean::isOriginal(std::vector<float> &featureVect, std::vector<Objec
 
 }
 
-double KNearestMean::performCrossValidation(int K)
-{
-    double avgFailRate = 0.0;
-    auto vect = this->originalSet.getObjects();
-    std::vector<Object> mixedObj;
-
-    srand(QTime::currentTime().msec());
-    int rN =0;
-    while(vect.size() > 1)  //Przelosowuje wektor aby dane byly losowo rozlozone
-    {
-        rN = qrand()%(vect.size()-1);
-        mixedObj.push_back(vect.at(rN));
-        deleteIndex(rN,vect);
-    }
-    mixedObj.push_back(vect.back());
-    qDebug()<<"mixedObj size:"<<mixedObj.size();
-
-    int lastIndx = 0;
-    int chunk = (int)mixedObj.size()/K;
-    this->trainingSize = chunk;
-    this->train();
-
-    for(int i =0; i<K; i++) // wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
-    {
-        this->trainingSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
-        lastIndx+= chunk;
-        this->execute();
-        avgFailRate += this->failureRate;
-        qDebug()<<"FR:"<<this->failureRate;
-    }
-
-    avgFailRate/= K;
-    qDebug()<<"FR avg:"<<avgFailRate;
-    return avgFailRate;
-}
 
 std::string KNearestMean::dumpLog(bool full)
 {

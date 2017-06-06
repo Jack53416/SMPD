@@ -13,7 +13,7 @@ typedef struct ClosestObject {
 class Classifier{
 
 public:
-    Classifier(Database &data): originalSet(data){}
+    Classifier(Database &data): originalSet(data), crossValidation(false){}
     unsigned int getTestSize(){
         return (unsigned int) testSeq.size();
     }
@@ -29,7 +29,7 @@ public:
     double calculateDistance(Object& startVec, Object& endVec);
 
     double performBootstrap(int K);
-    virtual double performCrossValidation(int K);
+    double performCrossValidation(int K);
     virtual std::string dumpLog(bool full) = 0;
 
     virtual void train()=0;
@@ -44,6 +44,7 @@ protected:
     int k;
     unsigned int trainingSize;
     double failureRate;
+    bool crossValidation;
 
     std::vector<unsigned int> trainIndexes;
     std::vector<Object> trainingSeq;

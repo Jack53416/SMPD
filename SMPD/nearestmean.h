@@ -14,7 +14,6 @@ public:
     void execute();
     std::string dumpLog(bool full);
 
-    double performCrossValidation(int K);
     ClosestObject classifyObject(Object obj);
     std::map<Object*, ClosestObject> log; //zeby wyswietlic pelne dane w GUI
     void calculateMean(Database &data);

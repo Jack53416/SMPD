@@ -10,21 +10,21 @@ NearestNeighbour::NearestNeighbour(Database &data):
 }
 
 void NearestNeighbour::train(){
-    if(originalSet.getNoObjects() > 0)
+    if(originalSet.getNoObjects() > 0 && !crossValidation)
         divideDatabase(originalSet);
 
 }
 
 void NearestNeighbour::execute(){
     ClosestObject obj;
-    for(unsigned int i = 0; i<trainingSeq.size(); i++ )
+    for(unsigned int i = 0; i<testSeq.size(); i++ )
     {
-        obj=classifyObject(this->trainingSeq.at(i));
-        log.insert(std::make_pair(&trainingSeq.at(i), obj)); //tworzy log, do przekazania dla gui
-        if(trainingSeq.at(i).getClassName() != obj.obj->getClassName())
+        obj=classifyObject(this->testSeq.at(i));
+        log.insert(std::make_pair(&testSeq.at(i), obj)); //tworzy log, do przekazania dla gui
+        if(testSeq.at(i).getClassName() != obj.obj->getClassName())
             failureRate++;
     }
-    failureRate /= trainingSeq.size();
+    failureRate /= testSeq.size();
 }
 
 
@@ -32,16 +32,16 @@ ClosestObject NearestNeighbour::classifyObject(Object obj) //znajduje obiekt z n
 {
     double tmpDist;
     ClosestObject result;
-    result.distance=calculateDistance(obj,testSeq.at(0));
-    result.obj=&testSeq.at(0);
+    result.distance=calculateDistance(obj,trainingSeq.at(0));
+    result.obj=&trainingSeq.at(0);
 
-    for(unsigned int i=1; i<testSeq.size(); i++)
+    for(unsigned int i=1; i<trainingSeq.size(); i++)
     {
-        tmpDist=calculateDistance(obj,testSeq.at(i));
+        tmpDist=calculateDistance(obj,trainingSeq.at(i));
         if(tmpDist < result.distance)
         {
             result.distance=tmpDist;
-            result.obj=&testSeq.at(i);
+            result.obj=&trainingSeq.at(i);
         }
     }
     return result;

@@ -32,18 +32,18 @@ void NearestMean::calculateMean(Database &data){
           numberOfObjectsFromClass[j]= 0;
     }
 
-    for(unsigned int i = 0; i<testSeq.size();i++)//sumujemy featury w danej klasie
+    for(unsigned int i = 0; i<trainingSeq.size();i++)//sumujemy featury w danej klasie
     {
         for(int j = 0; j<data.getClassNames().size();j++)//sprawdzenie w ktorej jest klasie
         {
-            if(!data.getClassNames().at(j).compare(testSeq.at(i).getClassName())){
+            if(!data.getClassNames().at(j).compare(trainingSeq.at(i).getClassName())){
                 classId = j;
                 break;
             }
         }
         for(unsigned int m = 0; m<data.getNoFeatures();m++) //sumujemy featury w danej klasie
         {
-            sumFeatures[classId][m]+= testSeq.at(i).getFeatures().at(m);
+            sumFeatures[classId][m]+= trainingSeq.at(i).getFeatures().at(m);
 
         }
         numberOfObjectsFromClass[classId]++;
@@ -59,11 +59,11 @@ void NearestMean::calculateMean(Database &data){
          }
     }
 
-    testSeq.clear(); //czyscimy zbior
+    trainingSeq.clear(); //czyscimy zbior
     for(unsigned int i = 0; i< data.getNoClass();i++)//dodajemy srednie wartosci z klas
      {
         dataVector.at(i).assign(sumFeatures[i], sumFeatures[i] + data.getNoFeatures());
-        testSeq.push_back(Object(data.getClassNames().at(i),dataVector.at(i)));
+        trainingSeq.push_back(Object(data.getClassNames().at(i),dataVector.at(i)));
      }
 
     for(unsigned int i = 0; i < data.getNoClass() ; i++)
@@ -77,7 +77,9 @@ void NearestMean::calculateMean(Database &data){
 void NearestMean::train(){
     if(originalSet.getNoObjects() > 0)
     {
-        divideDatabase(originalSet);
+        if(!crossValidation)
+            divideDatabase(originalSet);
+
         calculateMean(data1);
     }
 
@@ -85,14 +87,14 @@ void NearestMean::train(){
 
 void NearestMean::execute(){
     ClosestObject obj; //
-    for(unsigned int i = 0; i<trainingSeq.size(); i++ )
+    for(unsigned int i = 0; i<testSeq.size(); i++ )
     {
-        obj=classifyObject(this->trainingSeq.at(i));
-        log.insert(std::make_pair(&trainingSeq.at(i), obj)); //tworzy log, do przekazania dla gui
-        if(trainingSeq.at(i).getClassName() != obj.obj->getClassName())
+        obj=classifyObject(this->testSeq.at(i));
+        log.insert(std::make_pair(&testSeq.at(i), obj)); //tworzy log, do przekazania dla gui
+        if(testSeq.at(i).getClassName() != obj.obj->getClassName())
             failureRate++;
     }
-    failureRate /= trainingSeq.size();
+    failureRate /= testSeq.size();
 }
 
 
@@ -100,16 +102,16 @@ ClosestObject NearestMean::classifyObject(Object obj) //znajduje obiekt z najmni
 {
     double tmpDist;
     ClosestObject result;
-    result.distance=calculateDistance(obj,testSeq.at(0));
-    result.obj=&testSeq.at(0);
+    result.distance=calculateDistance(obj,trainingSeq.at(0));
+    result.obj=&trainingSeq.at(0);
 
-    for(unsigned int i=1; i<testSeq.size(); i++)
+    for(unsigned int i=1; i<trainingSeq.size(); i++)
     {
-        tmpDist=calculateDistance(obj,testSeq.at(i));
+        tmpDist=calculateDistance(obj,trainingSeq.at(i));
         if(tmpDist < result.distance)
         {
             result.distance=tmpDist;
-            result.obj=&testSeq.at(i);
+            result.obj=&trainingSeq.at(i);
         }
     }
     //debug
@@ -120,41 +122,6 @@ ClosestObject NearestMean::classifyObject(Object obj) //znajduje obiekt z najmni
 }
 
 
-double NearestMean::performCrossValidation(int K)
-{
-    double avgFailRate = 0.0;
-    auto vect = this->originalSet.getObjects();
-    std::vector<Object> mixedObj;
-
-    srand(QTime::currentTime().msec());
-    int rN =0;
-    while(vect.size() > 1)  //Przelosowuje wektor aby dane byly losowo rozlozone
-    {
-        rN = qrand()%(vect.size()-1);
-        mixedObj.push_back(vect.at(rN));
-        deleteIndex(rN,vect);
-    }
-    mixedObj.push_back(vect.back());
-    qDebug()<<"mixedObj size:"<<mixedObj.size();
-
-    int lastIndx = 0;
-    int chunk = (int)mixedObj.size()/K;
-    this->trainingSize = chunk;
-    this->train();
-
-    for(int i =0; i<K; i++) // wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
-    {
-        this->trainingSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
-        lastIndx+= chunk;
-        this->execute();
-        avgFailRate += this->failureRate;
-        qDebug()<<"FR:"<<this->failureRate;
-    }
-
-    avgFailRate/= K;
-    qDebug()<<"FR avg:"<<avgFailRate;
-    return avgFailRate;
-}
 
 std::string NearestMean::dumpLog(bool full)
 {

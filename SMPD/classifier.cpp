@@ -111,22 +111,24 @@ double Classifier::performCrossValidation(int K)
     qDebug()<<"mixedObj size:"<<mixedObj.size();
 
     int lastIndx = 0;
-    int chunk = (int)mixedObj.size()/K;
     std::vector<Object> tmpSeq;
-    this->trainingSize = chunk;
+    int chunk = (int)mixedObj.size()/K;
+    this->crossValidation = true;
 
     for(int i =0; i<K; i++) // wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
     {
-        this->trainingSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
+        this->testSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
         tmpSeq = mixedObj;
         tmpSeq.erase(tmpSeq.begin()+lastIndx,tmpSeq.begin()+chunk+lastIndx);
-        this->testSeq = tmpSeq;
+        this->trainingSeq = tmpSeq;
         lastIndx+= chunk;
+        this->train();
         this->execute();
         avgFailRate += this->failureRate;
         qDebug()<<"FR:"<<this->failureRate;
     }
 
+    this->crossValidation = false;
     avgFailRate/= K;
     qDebug()<<"FR avg:"<<avgFailRate;
     return avgFailRate;
