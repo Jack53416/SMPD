@@ -15,17 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->CcomboBoxClassifiers->addItem("kNN");
     ui->CcomboBoxClassifiers->addItem("NM");
     ui->CcomboBoxClassifiers->addItem("kNM");
-<<<<<<< HEAD
-    ui->CcomboBoxK->addItem("1");
-    ui->CcomboBoxK->addItem("3");
-    ui->CcomboBoxK->addItem("5");
-    ui->CcomboBoxK->addItem("7");
-    ui->CcomboBoxK->addItem("9");
-    ui->CcomboBoxK->addItem("11");
-    ui->CcomboBootstrapK->setVisible(false);
-    ui->ClabelBootstrapK->setVisible(false);
-    for(int i = 1; i<16; i++)
-=======
+
     ui->labelTrainUnit->setVisible(true);
     ui->CcomboBootstrapK->setVisible(false);
     ui->ClabelBootstrapK->setVisible(false);
@@ -37,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     for(int i = 1; i<30; i++)
->>>>>>> origin/start
     {
         ui->CcomboBoxK->addItem(QString::number(i));
         ui->CcomboBootstrapK->addItem(QString::number(i));
