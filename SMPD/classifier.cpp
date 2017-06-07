@@ -1,7 +1,7 @@
 #include "Classifier.h"
 
 std::vector<int> Classifier::selectedFeatures;
-void Classifier::divideDatabase( Database &data)
+void Classifier::divideDatabase( Database &data) ///Dzieli baze na zbior testowy i treningowy
 {
     unsigned int rN;
     qsrand(QTime::currentTime().msec());
@@ -101,25 +101,25 @@ double Classifier::performCrossValidation(int K)
 
     srand(QTime::currentTime().msec());
     int rN =0;
-    while(vect.size() > 1)  //Przelosowuje wektor aby dane byly losowo rozlozone
+    while(vect.size() > 1)  ///Przelosowuje wektor obiektów z bazy danych aby dane byly losowo rozlozone
     {
         rN = qrand()%(vect.size()-1);
         mixedObj.push_back(vect.at(rN));
         deleteIndex(rN,vect);
     }
     mixedObj.push_back(vect.back());
-    qDebug()<<"mixedObj size:"<<mixedObj.size();
+    //qDebug()<<"mixedObj size:"<<mixedObj.size();
 
     int lastIndx = 0;
     std::vector<Object> tmpSeq;
     int chunk = (int)mixedObj.size()/K;
     this->crossValidation = true;
 
-    for(int i =0; i<K; i++) // wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
+    for(int i =0; i<K; i++) /// wycina kawałki wektora potrzebne do test i training sequence a następnie wykonuje na nich dany classifier
     {
-        this->testSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx);
+        this->testSeq.assign(mixedObj.begin()+lastIndx,mixedObj.begin()+chunk+lastIndx); /// wycięcie małego kawałka do test Seq
         tmpSeq = mixedObj;
-        tmpSeq.erase(tmpSeq.begin()+lastIndx,tmpSeq.begin()+chunk+lastIndx);
+        tmpSeq.erase(tmpSeq.begin()+lastIndx,tmpSeq.begin()+chunk+lastIndx); /// unięcie wcześniej wyciętego kawałka i utworzenie train seq
         this->trainingSeq = tmpSeq;
         lastIndx+= chunk;
         this->train();

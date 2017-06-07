@@ -41,10 +41,6 @@ private:
     void FSupdateButtonState(void);
     void FSsetButtonState(bool state);
 
-    void divideDatabase();
-    bool checkIfIndexOriginal(unsigned int index);
-
-
 private slots:
     void on_FSpushButtonOpenFile_clicked();
 

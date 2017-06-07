@@ -10,7 +10,7 @@ KNearestNeighbours::KNearestNeighbours(Database &data, int input):
 
 
 void KNearestNeighbours::train(){
-    if(originalSet.getNoObjects() > 0 && !crossValidation)
+    if(originalSet.getNoObjects() > 0 && !crossValidation) /// Kroswalidacja wykonuje własny podział danych
         divideDatabase(originalSet);
 
 }

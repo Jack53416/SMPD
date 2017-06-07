@@ -4,7 +4,8 @@
 #include "database.h"
 #include <functional>
 #include <QtCore>
-typedef struct ClosestObject {
+typedef struct ClosestObject
+{
     double distance;
     Object* obj;
 } ClosestObject;

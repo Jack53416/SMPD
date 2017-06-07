@@ -9,14 +9,14 @@ KNearestMean::KNearestMean(Database &data, int subclasses):
 }
 
 void KNearestMean::train(){
-    if(originalSet.getNoObjects() > 0 && !crossValidation)
+    if(originalSet.getNoObjects() > 0 && !crossValidation) /// Kroswalidacja wykonuje własny podział danych
         divideDatabase(originalSet);
 
     std::vector<std::string> classNames = originalSet.getClassNames();
     std::vector<Database> separateClasses;
     std::vector<Object> meanSubclasses;
 
-    for(int i =0; i < classNames.size(); i++)
+    for(int i =0; i < classNames.size(); i++) ///generuje wektor treningowy skladajacy sie ze srednich podklas klas Acer i Q
     {
         separateClasses.push_back(getOneClass(trainingSeq,classNames.at(i)));
         concatVect(meanSubclasses,performKNM(separateClasses.at(i)));
@@ -34,7 +34,7 @@ template <typename T> void KNearestMean::concatVect(std::vector<T>& a, const std
     a.insert(a.end(), b.begin(), b.end());
 }
 
-Database KNearestMean::getOneClass(std::vector<Object> &objVector, std::string className)
+Database KNearestMean::getOneClass(std::vector<Object> &objVector, std::string className) /// zwraca obiekt bazy danych zawierajacy tylko 1 klase
 {
     Database result;
     for(int i = 0; i < objVector.size();i++)
@@ -47,7 +47,7 @@ Database KNearestMean::getOneClass(std::vector<Object> &objVector, std::string c
     return result;
 }
 
-std::vector<Object> KNearestMean::performKNM(Database &dataSet){ //zwraca wektor srednich z podklas po KnM dla bazy danych z jedną klasą
+std::vector<Object> KNearestMean::performKNM(Database &dataSet){ ///zwraca wektor srednich z podklas po KnM dla bazy danych z jedną klasą
 
     std::vector<Object> databaseObjects;
     std::vector<Object> subclassAverages;
@@ -122,7 +122,7 @@ void KNearestMean::execute()
         qDebug()<<"orginal : "<<QString::fromStdString(originalClassName)<<" Found:" << QString::fromStdString(currentClassName);
         subclassName =  obj.obj->getClassName();
         subclassName = subclassName.substr(0,subclassName.size()-1);
-        if(obj.obj->getClassName().find(testSeq.at(i).getClassName()) == std::string::npos)
+        if(obj.obj->getClassName().find(testSeq.at(i).getClassName()) == std::string::npos) //podklasy tworzone byly przed dodanie cyfry do nazwy: wyszukuje czy nazwa zawiera sie w nazwie podklasy
             failureRate++;
     }
     failureRate /= testSeq.size();

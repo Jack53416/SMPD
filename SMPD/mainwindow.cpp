@@ -244,7 +244,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                                 result+= (classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)))*(classAAvg.at(combinations.at(m).at(i))-classBAvg.at(combinations.at(m).at(i)));
                             }
 
-                            result=sqrt(result); /// rezem z poprzednim forem ||UA(i) - IB(i)||
+                            result=sqrt(result); /// rezem z poprzednim forem ||UA(i) - UB(i)||
                             //std::cout<<"roznica srednich"<<z<<std::endl;
                             //std::cout<<b<<std::endl;
                             axpy_prod(a, trans(a), aResult, true); ///ares, bres = S matrix
@@ -256,7 +256,7 @@ void MainWindow::on_FSpushButtonCompute_clicked()
                             detA = determinant(aResult);
                             detB = determinant(bResult);
 
-                            result/=(detA+detB);
+                            result/=(detA+detB);/// ||E(A) - E(B)||/(det(Sa)+det(Sb))
                             //std::cout<<"wspolczynnik fiszera "<<z<<std::endl;
                             if(result>FLD)
                             {
@@ -381,15 +381,15 @@ void MainWindow::on_CpushButtonExecute_clicked()
     if(classifier)
     {
         if(ui->radioButton_Bootstrap->isChecked())
-             ui->CtextBrowser->append("Avg FAil: " + QString::number(
+             ui->CtextBrowser->append("Avg Fail: " + QString::number(
                                           classifier->performBootstrap(ui->CcomboBootstrapK->currentText().toInt())));
         else if(ui->radioButton_CrossValidation->isChecked())
-             ui->CtextBrowser->append("Avg FAil Cross: " + QString::number(
+             ui->CtextBrowser->append("Avg Fail Cross: " + QString::number(
                                           classifier->performCrossValidation(ui->comboBoxTrainingPart->currentText().toInt())));
         else
         {
              classifier->execute();
-             ui->CtextBrowser->append(QString::fromStdString(classifier->dumpLog(true)));
+             ui->CtextBrowser->append(QString::fromStdString(classifier->dumpLog(false)));
         }
     }
     delete classifier;

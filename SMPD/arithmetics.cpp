@@ -22,9 +22,9 @@ double fisher_2C(FisherData& calcData)
     bnu::matrix<double> bResult(mSize,mSize);
     double detA = 0;
     double detB = 0;
-    double z = 0;
+    double FLD = 0;
     int currentFeature =0;
-    double biggestZ;
+    double maxFLD;
     calcData.a.resize(calcData.a.size1()+1, calcData.a.size2());
     calcData.b.resize(calcData.b.size1()+1,calcData.b.size2());
 
@@ -34,9 +34,9 @@ double fisher_2C(FisherData& calcData)
     {
         detA = 0;
         detB = 0;
-        z = 0;
+        FLD = 0;
 
-        if(isFeautureOriginal(calcData.bestFeatures,i))
+        if(isFeautureOriginal(calcData.bestFeatures,i)) ///pomijamy Featury ktore juz sa na liscie najlepszych
         {
             currentFeature = i;
             for(int j = 0; j<calcData.classAMembers.size(); ++j)
@@ -49,18 +49,18 @@ double fisher_2C(FisherData& calcData)
                 calcData.b(mSize-1,j) = calcData.classBMembers.at(j).getFeatures()[i]
                         - calcData.classBAvg.at(i);
             }
-            //dodany row dla obu matrixow
+            ///dodany row dla obu matrixow
 
             for(int j = 0; j<calcData.bestFeatures.size()-1; ++j)
             {
-                z+= (calcData.classAAvg.at(calcData.bestFeatures[j])-calcData.classBAvg.at(calcData.bestFeatures[j]))
+                FLD+= (calcData.classAAvg.at(calcData.bestFeatures[j])-calcData.classBAvg.at(calcData.bestFeatures[j]))
                      *(calcData.classAAvg.at(calcData.bestFeatures[j])-calcData.classBAvg.at(calcData.bestFeatures[j]));
             }
-            z+= (calcData.classAAvg.at(currentFeature)-calcData.classBAvg.at(currentFeature))
+            FLD+= (calcData.classAAvg.at(currentFeature)-calcData.classBAvg.at(currentFeature))
                  *(calcData.classAAvg.at(currentFeature)-calcData.classBAvg.at(currentFeature));
 
-            z=sqrt(z);
-            //qDebug()<<"norm: "<<z;
+            FLD=sqrt(FLD);
+            //qDebug()<<"norm: "<<FLD;
             axpy_prod(calcData.a, trans(calcData.a), aResult, true); ///ares, bres = S matrix
             axpy_prod(calcData.b, trans(calcData.b), bResult, true);
 
@@ -68,18 +68,18 @@ double fisher_2C(FisherData& calcData)
             detB = determinant(bResult);
             //qDebug()<<"DetA+ b ="<<detA+detB;
 
-            z/=(detA+detB);
-           // qDebug()<<"z:"<<z<<"kl:"<<currentFeature<<" Prev: "<<calcData.fisherCoeffs.back()<<"\n";
-            if(z> calcData.fisherCoeffs.back())
+            FLD/=(detA+detB);
+           // qDebug()<<"FLD:"<<FLD<<"kl:"<<currentFeature<<" Prev: "<<calcData.fisherCoeffs.back()<<"\n";
+            if(FLD> calcData.fisherCoeffs.back())
             {
-               //qDebug()<<"z:"<<z<<"kl:"<<currentFeature<<" Prev: "<<calcData.fisherCoeffs.back()<<"\n";
-               biggestZ = z;
-               calcData.fisherCoeffs.back() = z;
-               calcData.bestFeatures.back() = currentFeature;
+               //qDebug()<<"FLD:"<<FLD<<"kl:"<<currentFeature<<" Prev: "<<calcData.fisherCoeffs.back()<<"\n";
+               maxFLD = FLD;
+               calcData.fisherCoeffs.back() = FLD;
+               calcData.bestFeatures.back() = currentFeature; ///dodaje obecny feature do listy najlepszych
             }
         }
     }
-    for(int i = 0; i < calcData.classAMembers.size();++i)
+    for(int i = 0; i < calcData.classAMembers.size();++i) /// dopisuje wybrany najlepszy feature do wierszy macierzy a i b
     {
         calcData.a(mSize-1,i) = calcData.classAMembers.at(i).getFeatures()[calcData.bestFeatures.back()]
                 - calcData.classAAvg.at(calcData.bestFeatures.back());
@@ -89,7 +89,7 @@ double fisher_2C(FisherData& calcData)
         calcData.b(mSize-1,i) = calcData.classBMembers.at(i).getFeatures()[calcData.bestFeatures.back()]
                 - calcData.classBAvg.at(calcData.bestFeatures.back());
     }
-    return biggestZ;
+    return maxFLD;
 }
 
 FisherResult SFS(Database& inputSet, int N)
@@ -97,7 +97,7 @@ FisherResult SFS(Database& inputSet, int N)
     FisherData calcData;
     FisherResult result;
 
-    fisher_1D(inputSet,calcData); //pierwszy feature
+    fisher_1D(inputSet,calcData); ///pierwszy feature liczony ze standardowego Fishera
     //calcData.bestFeatures.front() = 15;
     for (auto const &ob : inputSet.getObjects())
     {
@@ -109,10 +109,11 @@ FisherResult SFS(Database& inputSet, int N)
         }
 
     } // klasy rozdzielone
-    calcData.a.resize(1, calcData.classAMembers.size());
-    calcData.b.resize(1,calcData.classBMembers.size());
 
-    for(int i = 0; i < calcData.classAMembers.size();++i)
+    calcData.a.resize(1, calcData.classAMembers.size());
+    calcData.b.resize(1,calcData.classBMembers.size()); ///resize macierzy a i b aby pomiescic 1 najlepszy feature
+
+    for(int i = 0; i < calcData.classAMembers.size();++i) ///dopisuje pierwszy feature do macierzy a i b
     {
         calcData.a(0,i) = calcData.classAMembers.at(i).getFeatures()[calcData.bestFeatures.front()]
                 - calcData.classAAvg.at(calcData.bestFeatures.front());
@@ -125,7 +126,7 @@ FisherResult SFS(Database& inputSet, int N)
     //macierze zainicjalizowane
     double max;
 
-    while(calcData.bestFeatures.size() < N)
+    while(calcData.bestFeatures.size() < N) /// dopoki liczba najlepszych featurow jest mniejsza od oczekiwanej szukaj dalej
     {
         max = fisher_2C(calcData);
         qDebug()<<"Feature: "<<calcData.bestFeatures.size()<<"from "<<N;
@@ -134,10 +135,10 @@ FisherResult SFS(Database& inputSet, int N)
     result.bestFeatures = calcData.bestFeatures;
     result.FLD = calcData.fisherCoeffs.back();
 
-    return result;
+    return result; ///zwraca zestaw najlepszych featurow razem z ich wspolczynnikami
 }
 
-float fisher_1D(Database& database, FisherData& calcData)
+float fisher_1D(Database& database, FisherData& calcData) ///zwykly Fisher z mainwindow.cpp
 {
     float FLD = 0, tmp;
     int max_ind = -1;
@@ -188,11 +189,14 @@ int determinant_sign(const bnu::permutation_matrix<std::size_t>& pm)
 double determinant( bnu::matrix<double>& m ) {
     bnu::permutation_matrix<std::size_t> pm(m.size1());
     double det = 1.0;
-    if( bnu::lu_factorize(m,pm) ) {
+    if( bnu::lu_factorize(m,pm) ) /// LU factorization- decomposition of matrix NxN A into a product of L lower triagular and U upper triangular matrix
+    {
         det = 0.0;
-    } else {
+    }
+    else
+    {
         for(int i = 0; i < m.size1(); i++)
-            det *= m(i,i); // multiply by elements on diagonal
+        det *= m(i,i); // multiply by elements on diagonal
         det = det * determinant_sign( pm );
     }
     return det;

@@ -77,7 +77,7 @@ void NearestMean::calculateMean(Database &data){
 void NearestMean::train(){
     if(originalSet.getNoObjects() > 0)
     {
-        if(!crossValidation)
+        if(!crossValidation) /// Kroswalidacja wykonuje własny podział danych
             divideDatabase(originalSet);
 
         calculateMean(data1);

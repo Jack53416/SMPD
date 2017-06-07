@@ -10,7 +10,7 @@ NearestNeighbour::NearestNeighbour(Database &data):
 }
 
 void NearestNeighbour::train(){
-    if(originalSet.getNoObjects() > 0 && !crossValidation)
+    if(originalSet.getNoObjects() > 0 && !crossValidation) /// Kroswalidacja wykonuje własny podział danych
         divideDatabase(originalSet);
 
 }

@@ -13,7 +13,7 @@ public:
     void execute();
     std::string dumpLog(bool full);
 
-    std::map<Object*, ClosestObject> log; //zeby wyswietlic pelne dane w GUI
+    std::map<Object*, ClosestObject> log; ///pelne dane dla  GUI
 
 private:
     ClosestObject classifyObject(Object obj);
